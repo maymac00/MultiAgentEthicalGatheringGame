@@ -213,7 +213,7 @@ class MAEGG(gym.Env):
         self.agents = {k: Agent(self.map.get_spawn_coords(), k) for k in range(self.n_agents)}
         self.donation_box = 0
         self.steps = 0
-        pass
+        return self.getObservation()
 
     def render(self, mode="human", pause=0.1):
         frame = self.map.current_state.copy()
