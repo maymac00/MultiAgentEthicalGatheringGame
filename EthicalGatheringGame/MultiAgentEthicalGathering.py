@@ -146,14 +146,13 @@ class MAEGG(gym.Env):
             return observations
 
         else:
-            normalized_obs = np.ones(global_state.shape)
-            normalized_obs[global_state == '@'] = 0.5
-            normalized_obs[global_state == ' '] = 0.25
+            obs_shape = np.prod(global_state.shape)
+            obs = np.reshape(global_state, (obs_shape,))
             for ag in self.agents.values():
-                normalized_obs[global_state == ag.id] = 0.75
-                observations.append(normalized_obs.copy())
-                normalized_obs[global_state == ag.id] = 1
-
+                normalized_obs = np.ones(obs.shape)
+                normalized_obs[obs == '@'] = 0.5
+                normalized_obs[obs == ' '] = 0.25
+                normalized_obs[obs == ag.id] = 0.75
                 aux = np.zeros(2)
                 aux[0] = normalized_db_state
                 if ag.apples == 0:
@@ -299,9 +298,9 @@ class MAEGG(gym.Env):
 
 if __name__ == "__main__":
 
-    env = MAEGG(n_agents=5, map_size="very_large", we=[1, 2.6], inequality_mode="tie",
+    env = MAEGG(n_agents=2, map_size="small", we=[1, 2.6], inequality_mode="tie",
                 max_steps=500, apple_regen=0.05, donation_capacity=5, survival_threshold=10,
-                visual_radius=5, partial_observability=True, init_state="full")
+                visual_radius=5, partial_observability=False, init_state="full")
     env.reset()
     for i in range(10):
         env.getObservation()
