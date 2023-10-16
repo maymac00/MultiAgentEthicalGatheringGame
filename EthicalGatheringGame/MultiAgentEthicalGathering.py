@@ -23,6 +23,10 @@ class Agent:
         self.apples = 0
         self.efficiency = efficiency
 
+    def reset(self, position):
+        self.position = np.array(position)
+        self.apples = 0
+
     def __gt__(self, other):
         return self.efficiency > other.efficiency
 
@@ -72,11 +76,12 @@ class MAEGG(gym.Env):
         self.action_space = gym.spaces.Discrete(7)
         if self.partial_observability:
             self.observation_space = gym.spaces.Box(low=0, high=1,
-                                                    shape=((self.visual_radius * 2 + 1)**2 + 2,),
+                                                    shape=((self.visual_radius * 2 + 1) ** 2 + 2,),
                                                     dtype=np.float32)
 
         else:
-            self.observation_space = gym.spaces.Box(low=0, high=1, shape=(np.prod(self.map.current_state.shape)+2,), dtype=np.float32)
+            self.observation_space = gym.spaces.Box(low=0, high=1, shape=(np.prod(self.map.current_state.shape) + 2,),
+                                                    dtype=np.float32)
 
     def getObservation(self):
         """
@@ -213,7 +218,8 @@ class MAEGG(gym.Env):
         if seed is not None:
             np.random.seed(seed)
         self.map.reset()
-        self.agents = {k: Agent(self.map.get_spawn_coords(), k) for k in range(self.n_agents)}
+        for ag in self.agents.values():
+            ag.reset(self.map.get_spawn_coords())
         self.donation_box = 0
         self.steps = 0
         return (self.getObservation(), {
@@ -291,12 +297,11 @@ class MAEGG(gym.Env):
         return events
 
 
-
 if __name__ == "__main__":
 
     env = MAEGG(n_agents=5, map_size="very_large", we=[1, 2.6], inequality_mode="tie",
-                                     max_steps=500, apple_regen=0.05, donation_capacity=5, survival_threshold=10,
-                                     visual_radius=5, partial_observability=True, init_state="full")
+                max_steps=500, apple_regen=0.05, donation_capacity=5, survival_threshold=10,
+                visual_radius=5, partial_observability=True, init_state="full")
     env.reset()
     for i in range(10):
         env.getObservation()
