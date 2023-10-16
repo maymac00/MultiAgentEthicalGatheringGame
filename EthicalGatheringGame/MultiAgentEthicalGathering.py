@@ -71,11 +71,11 @@ class MAEGG(gym.Env):
         self.action_space = gym.spaces.Discrete(7)
         if self.partial_observability:
             self.observation_space = gym.spaces.Box(low=0, high=1,
-                                                    shape=((self.visual_radius * 2 + 1)**2, 1),
+                                                    shape=((self.visual_radius * 2 + 1)**2,),
                                                     dtype=np.float32)
 
         else:
-            self.observation_space = gym.spaces.Box(low=0, high=1, shape=np.prod(self.map.current_state.shape), dtype=np.float32)
+            self.observation_space = gym.spaces.Box(low=0, high=1, shape=(np.prod(self.map.current_state.shape),), dtype=np.float32)
 
     def getObservation(self):
         """
