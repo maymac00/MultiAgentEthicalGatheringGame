@@ -295,12 +295,32 @@ class MAEGG(gym.Env):
             events.add("hungry")
         return events
 
+    def _check_param(self, param):
+        pass
 
+# Your custom implementation
 if __name__ == "__main__":
+    # Register the environment
+    from gym.envs.registration import register
+    register(
+        id='MultiAgentEthicalGathering-v1',
+        entry_point='EthicalGatheringGame.MultiAgentEthicalGathering:MAEGG')
 
-    env = MAEGG(n_agents=2, map_size="small", we=[1, 2.6], inequality_mode="tie",
-                max_steps=500, apple_regen=0.05, donation_capacity=5, survival_threshold=10,
-                visual_radius=5, partial_observability=False, init_state="full")
+    config_dict = {
+        'n_agents': 3,
+        'map_size': 'very_large',
+        'we': [1, 2.6],
+        'inequality_mode': 'tie',
+        'max_steps': 500,
+        'apple_regen': 0.05,
+        'donation_capacity': 10,
+        'survival_threshold': 10,
+        'visual_radius': 5,
+        'partial_observability': True,
+        'init_state': 'full'
+    }
+
+    env = gym.make("MultiAgentEthicalGathering-v1", **config_dict)
     env.reset()
     for i in range(10):
         env.getObservation()

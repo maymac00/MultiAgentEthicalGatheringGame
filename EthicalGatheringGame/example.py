@@ -1,7 +1,7 @@
 import gym
 import numpy as np
 from matplotlib import pyplot as plt
-from MultiAgentEthicalGathering import MultiAgentEthicalGathering
+from MultiAgentEthicalGathering import MAEGG
 
 
 def greedy_agent(grid, agent, env):
@@ -61,7 +61,7 @@ config_dict = {
     'init_state': 'full'
 }
 
-env = MultiAgentEthicalGathering(**config_dict)
+env = MAEGG(**config_dict)
 
 env.reset()
 for i in range(env.max_steps):
