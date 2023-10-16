@@ -6,7 +6,7 @@ matplotlib.use('GTK3Agg')
 from matplotlib import pyplot as plt
 
 import gym
-from Maps import Maps
+from env.Maps import Maps
 
 
 class Agent:
@@ -283,10 +283,6 @@ class MultiAgentEthicalGathering(gym.Env):
             events.add("hungry")
         return events
 
-# Register the environment
-gym.envs.registration.register(
-    id='MultiAgentEthicalGathering-v1',
-    entry_point='env:MultiAgentEthicalGathering')
 
 
 if __name__ == "__main__":
