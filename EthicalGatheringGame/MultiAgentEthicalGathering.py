@@ -32,7 +32,7 @@ class Agent:
         return self.id == other.id
 
 
-class MultiAgentEthicalGathering(gym.Env):
+class MAEEGG(gym.Env):
     # ACTION SPACE
     MOVE_UP = 0
     MOVE_DOWN = 1
@@ -47,7 +47,7 @@ class MultiAgentEthicalGathering(gym.Env):
 
     def __init__(self, n_agents, map_size, we: np.ndarray, inequality_mode, max_steps, apple_regen, donation_capacity,
                  survival_threshold, visual_radius, partial_observability, init_state="empty", track_history=True):
-        super(MultiAgentEthicalGathering, self).__init__()
+        super(MAEEGG, self).__init__()
         # Parameters
         self.n_agents = n_agents
         self.map_size = map_size
@@ -71,10 +71,10 @@ class MultiAgentEthicalGathering(gym.Env):
         self.action_space = gym.spaces.Discrete(7)
         if self.partial_observability:
             self.observation_space = gym.spaces.Box(low=0, high=1,
-                                                    shape=(self.visual_radius * 2 + 1, self.visual_radius * 2 + 1),
+                                                    shape=((self.visual_radius * 2 + 1)**2),
                                                     dtype=np.float32)
         else:
-            self.observation_space = gym.spaces.Box(low=0, high=1, shape=self.map.current_state.shape, dtype=np.float32)
+            self.observation_space = gym.spaces.Box(low=0, high=1, shape=np.prod(self.map.current_state.shape), dtype=np.float32)
 
     def getObservation(self):
         """
@@ -252,7 +252,7 @@ class MultiAgentEthicalGathering(gym.Env):
         """
         events = set()
 
-        move_vec = MultiAgentEthicalGathering.MOVE_VECTORS[action]
+        move_vec = MAEEGG.MOVE_VECTORS[action]
         if self.map.check_valid_position(agent.position + move_vec):
             agent.position += move_vec
             events.add("moved")
@@ -263,7 +263,7 @@ class MultiAgentEthicalGathering(gym.Env):
                 self.map.current_state[*agent.position] = ' '
                 events.add("picked_apple")
 
-        if action == MultiAgentEthicalGathering.TAKE_DONATION:
+        if action == MAEEGG.TAKE_DONATION:
             if agent.apples >= self.survival_threshold:
                 events.add("greedy")
             if self.donation_box > 0:
@@ -271,7 +271,7 @@ class MultiAgentEthicalGathering(gym.Env):
                 self.donation_box -= 1
                 events.add("took_donation")
 
-        elif action == MultiAgentEthicalGathering.DONATE:
+        elif action == MAEEGG.DONATE:
             if agent.apples > 0 and self.donation_box < self.donation_capacity:
                 self.donation_box += 1
                 agent.apples -= 1
@@ -287,7 +287,7 @@ class MultiAgentEthicalGathering(gym.Env):
 
 if __name__ == "__main__":
 
-    env = MultiAgentEthicalGathering(n_agents=5, map_size="very_large", we=[1, 2.6], inequality_mode="tie",
+    env = MAEEGG(n_agents=5, map_size="very_large", we=[1, 2.6], inequality_mode="tie",
                                      max_steps=500, apple_regen=0.05, donation_capacity=5, survival_threshold=10,
                                      visual_radius=5, partial_observability=True, init_state="full")
     env.reset()
