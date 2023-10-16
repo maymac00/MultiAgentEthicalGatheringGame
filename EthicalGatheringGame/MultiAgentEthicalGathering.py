@@ -189,7 +189,7 @@ class MAEGG(gym.Env):
 
         for i in range(self.n_agents):
             events = self.get_action_events(sorted_agents[i], action[i])
-            info[sorted_agents[i].id] = {"events": events}
+            info[sorted_agents[i].id] = {"events": events, "apples": sorted_agents[i].apples}
             if 'donate' in events:
                 reward[i, 1] += 0.7
             if 'greedy' in events:
@@ -204,16 +204,21 @@ class MAEGG(gym.Env):
         reward = np.dot(reward, self.we)
         return nObservations, reward, done, info
 
-    def reset(self):
+    def reset(self, seed=None):
         """
         Resets the environment. The map is reset, the agents are placed in the map and the donation box is emptied.
         :return:
         """
+        if seed is not None:
+            np.random.seed(seed)
         self.map.reset()
         self.agents = {k: Agent(self.map.get_spawn_coords(), k) for k in range(self.n_agents)}
         self.donation_box = 0
         self.steps = 0
-        return self.getObservation()
+        return (self.getObservation(), {
+            "donation_box": self.donation_box,
+            "steps": self.steps,
+        })
 
     def render(self, mode="human", pause=0.1):
         frame = self.map.current_state.copy()
