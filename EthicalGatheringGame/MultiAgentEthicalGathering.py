@@ -6,7 +6,7 @@ matplotlib.use('GTK3Agg')
 from matplotlib import pyplot as plt
 
 import gym
-from env.Maps import Maps
+from EthicalGatheringGame.Maps import Maps
 
 
 class Agent:
