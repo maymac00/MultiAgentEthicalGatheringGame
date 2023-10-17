@@ -49,15 +49,23 @@ def greedy_agent(grid, agent, env):
 
 config_dict = MAEGG.read_preset("small")
 env = MAEGG(**config_dict)
+acc_reward = [0, 0]
 
+env.track = True
+env.stash_runs = True
 env.reset()
-for i in range(env.max_steps):
-    env.getObservation()
+for r in range(2):
+    env.reset()
+    for i in range(env.max_steps):
+        env.getObservation()
 
-    actions = []
-    for ag in env.agents.values():
-        actions.append(greedy_agent(env.map.current_state, ag, env))
+        actions = []
+        for ag in env.agents.values():
+            actions.append(greedy_agent(env.map.current_state, ag, env))
 
-    env.step(actions)
-    env.render()
-plt.show()
+        obs, reward, done, info = env.step(actions)
+        acc_reward += reward
+        # env.render()
+    print(acc_reward)
+env.plot_results("blurr")
+pass

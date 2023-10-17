@@ -10,6 +10,7 @@ import json
 from EthicalGatheringGame.Maps import Maps
 from EthicalGatheringGame.presets import small, medium, large, very_large
 
+
 class Agent:
     # Alphabet for agent identification
     alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
@@ -99,6 +100,12 @@ class MAEGG(gym.Env):
         # TODO: parametrize efficiency
         self.donation_box = 0
         self.steps = 0
+
+        # Track history
+        self.track = False
+        self.history = []
+        self.stash_runs = True
+        self.stash = []
 
         # Env Setup
         self.action_space = gym.spaces.Discrete(7)
@@ -234,7 +241,12 @@ class MAEGG(gym.Env):
 
         self.map.regen_apples()
         nObservations = self.getObservation()
+        info["donation_box"] = self.donation_box
         reward = np.dot(reward, self.we)
+
+        if self.track:
+            self.history.append(info)
+
         return nObservations, reward, done, info
 
     def reset(self, seed=None):
@@ -244,11 +256,19 @@ class MAEGG(gym.Env):
         """
         if seed is not None:
             np.random.seed(seed)
+
         self.map.reset()
+
         for ag in self.agents.values():
             ag.reset(self.map.get_spawn_coords())
+
         self.donation_box = 0
         self.steps = 0
+
+        if self.track and self.stash_runs and len(self.history) > 0:
+            self.stash.append(self.build_history_array())
+        self.history = []
+
         return (self.getObservation(), {
             "donation_box": self.donation_box,
             "steps": self.steps,
@@ -271,7 +291,12 @@ class MAEGG(gym.Env):
             plt.ion()
             plt.imshow(rgb_frame)
             plt.axis('off')
-            plt.title('Ethical Gathering')  # TODO: add more info
+            # Set number of apples per agent and donation box as title
+            text = ""
+            for ag in self.agents.values():
+                text += "{}: {} ".format(ag.id, ag.apples)
+            text += "Donation Box: {}".format(self.donation_box)
+            plt.title(text)
             plt.pause(pause)
             plt.clf()
         pass
@@ -323,13 +348,143 @@ class MAEGG(gym.Env):
             events.add("hungry")
         return events
 
-    def _check_param(self, param):
-        pass
+    def build_history_array(self, h=None):
+        """
+        Builds an array of shape (n_steps, donation_box, apples_agent0, ..., apples_agentN) with the history of the environment.
+        :return:
+        """
+        from collections import Counter
+        from itertools import chain
+
+        history_array = np.zeros((self.max_steps, self.n_agents + 1))
+        event_histogram = [[] for _ in range(self.n_agents)]
+        for i, step in enumerate(self.history if h is None else h):
+            history_array[i, 0] = step['donation_box']
+            for j, ag in enumerate(self.agents.values()):
+                history_array[i, j + 1] = step[ag.id]['apples']
+                event_histogram[j].append(step[ag.id]['events'])
+        for i, l in enumerate(event_histogram):
+            event_histogram[i] = Counter(chain.from_iterable(event_histogram[i]))
+
+        return history_array, event_histogram
+
+    def plot_results(self, type="histogram"):
+        """
+        Plots the results of the environment. It plots the history of the donation box and the number of apples for each
+        agent in each step, or a histogram with the events that happened to each agent.
+        Plots:
+        - Histogram: histogram of events that happened to each agent. Works with self.history (last run)
+        - Line: line plot of donation box and number of apples for each agent in each step. Works with self.history
+        - Median: line plot of median+IQR number of apples for each agent in each step. Works with self.stash
+        - Mean: line plot of mean+std number of apples for each agent in each step. Works with self.stash
+        - Blurr: line plot of number of apples for each agent in each step with low alpha. Works with self.stash
+        :return:
+        """
+
+        if type == "histogram":
+            history_array, event_histogram = self.build_history_array()
+            # Remove irrelevant events from the histogram and register all tags
+            all_tags = set()
+            for h in event_histogram:
+                h.pop('not hungry')
+                h.pop('moved')
+                all_tags = all_tags.union(set(h.keys()))
+            for h in range(len(event_histogram)):
+                event_histogram[h] = {tag: event_histogram[h].get(tag, 0) for tag in all_tags}
+
+            # Set up the positions for the bars
+            x_positions = range(len(all_tags))
+            width = 0.35
+
+            # Make the histogram
+            fig, ax = plt.subplots()
+            for i in range(0, len(event_histogram)):
+                tags, counts = zip(*sorted(event_histogram[i].items()))
+                bars = ax.bar([x + width * i for x in x_positions], counts, width, label='Agent {}'.format(i))
+                for bar in bars:
+                    height = bar.get_height()
+                    plt.text(bar.get_x() + bar.get_width() / 2, height, str(height),
+                             ha='center', va='bottom', color='k')
+
+            # Optionally, add labels, a title, and a legend
+            plt.xlabel('Events')
+            plt.ylabel('Counts')
+            plt.title('Event Histogram')
+            plt.xticks(ticks=x_positions, labels=tags)  # Align x-axis labels with the center of the grouped bars
+            plt.legend()
+
+        if type == "line":
+            history_array, event_histogram = self.build_history_array()
+            for i in range(1, self.n_agents + 1):
+                plt.plot(history_array[:, i], label="Agent {}".format(i - 1))
+            plt.plot(history_array[:, 0], label="Donation Box")
+            # Plot survival threshold and donation capacity
+            plt.plot([0, self.max_steps], [self.survival_threshold, self.survival_threshold],
+                     label="Survival Threshold", linestyle='--', color='red')
+            plt.plot([0, self.max_steps], [self.donation_capacity, self.donation_capacity], label="Donation Capacity",
+                     linestyle='--', color='black')
+            plt.legend()
+
+        if type == "median":
+
+            if len(self.history) > 0:
+                self.stash.append(self.build_history_array())
+            self.history = []
+
+            # Plot median + IQR
+            apple_history = np.array([s[0] for s in self.stash])
+            median = np.median(apple_history, axis=0)
+            iqr = np.percentile(apple_history, 75, axis=0) - np.percentile(apple_history, 25, axis=0)
+            for i in range(1, self.n_agents + 1):
+                plt.plot(median[:, i], label="Agent {}".format(i - 1))
+                plt.fill_between(range(self.max_steps), median[:, i] - iqr[:, i], median[:, i] + iqr[:, i],
+                                 alpha=0.2)
+            plt.plot(median[:, 0], label="Donation Box")
+            # Plot survival threshold and donation capacity
+            plt.plot([0, self.max_steps], [self.survival_threshold, self.survival_threshold],
+                     label="Survival Threshold", linestyle='--', color='red')
+            plt.plot([0, self.max_steps], [self.donation_capacity, self.donation_capacity], label="Donation Capacity",
+                     linestyle='--', color='black')
+            plt.legend()
+
+        if type == "mean":
+
+                if len(self.history) > 0:
+                    self.stash.append(self.build_history_array())
+                self.history = []
+
+                # Plot mean + std
+                apple_history = np.array([s[0] for s in self.stash])
+                mean = np.mean(apple_history, axis=0)
+                std = np.std(apple_history, axis=0)
+                for i in range(1, self.n_agents + 1):
+                    plt.plot(mean[:, i], label="Agent {}".format(i - 1))
+                    plt.fill_between(range(self.max_steps), mean[:, i] - std[:, i], mean[:, i] + std[:, i],
+                                    alpha=0.2)
+                plt.plot(mean[:, 0], label="Donation Box")
+                # Plot survival threshold and donation capacity
+                plt.plot([0, self.max_steps], [self.survival_threshold, self.survival_threshold],
+                        label="Survival Threshold", linestyle='--', color='red')
+                plt.plot([0, self.max_steps], [self.donation_capacity, self.donation_capacity], label="Donation Capacity",
+                        linestyle='--', color='black')
+                plt.legend()
+
+        if type == "blurr":
+
+                if len(self.history) > 0:
+                    self.stash.append(self.build_history_array())
+                self.history = []
+
+                # Plot blurr
+                raise NotImplementedError("Blurr plot not implemented yet")
+        plt.show()
+
 
 # Your custom implementation
 if __name__ == "__main__":
     # Register the environment
     from gym.envs.registration import register
+
     register(
         id='MultiAgentEthicalGathering-v1',
         entry_point='EthicalGatheringGame.MultiAgentEthicalGathering:MAEGG')
@@ -340,6 +495,6 @@ if __name__ == "__main__":
     env.reset()
     for i in range(10):
         env.getObservation()
-        env.step([np.random.randint(0, 5) for _ in range(5)])
+        obs, reward, done, info = env.step([np.random.randint(0, 5) for _ in range(5)])
         env.render()
     plt.show()
