@@ -7,7 +7,7 @@ class Maps:
             list(' @@ '),
             list(' @  '),
             list('    ')]),
-        "medium": np.array([
+        "medium.json": np.array([
             list('     '),
             list('  @@ '),
             list('  @  '),
@@ -34,7 +34,7 @@ class Maps:
     sketches["large"] = sketches["very_large"][:, :16]
     apple_regen = {
         "small": 0.05,
-        "medium": 0.05,
+        "medium.json": 0.05,
         "large": 0.005,
         "very_large": 0.005
     }

@@ -47,20 +47,7 @@ def greedy_agent(grid, agent, env):
     return move
 
 
-config_dict = {
-    'n_agents': 3,
-    'map_size': 'very_large',
-    'we': [1, 2.6],
-    'inequality_mode': 'tie',
-    'max_steps': 500,
-    'apple_regen': 0.05,
-    'donation_capacity': 10,
-    'survival_threshold': 10,
-    'visual_radius': 5,
-    'partial_observability': True,
-    'init_state': 'full'
-}
-
+config_dict = MAEGG.read_preset("small")
 env = MAEGG(**config_dict)
 
 env.reset()

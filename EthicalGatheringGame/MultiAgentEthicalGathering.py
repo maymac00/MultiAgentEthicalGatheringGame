@@ -6,9 +6,9 @@ matplotlib.use('GTK3Agg')
 from matplotlib import pyplot as plt
 
 import gym
-
+import json
 from EthicalGatheringGame.Maps import Maps
-
+from EthicalGatheringGame.presets import small, medium, large, very_large
 
 class Agent:
     # Alphabet for agent identification
@@ -49,6 +49,34 @@ class MAEGG(gym.Env):
 
     MOVE_VECTORS = {MOVE_UP: (-1, 0), MOVE_DOWN: (1, 0), MOVE_LEFT: (0, -1), MOVE_RIGHT: (0, 1), STAY: (0, 0),
                     DONATE: (0, 0), TAKE_DONATION: (0, 0)}
+
+    @staticmethod
+    def read_params_from_json(json_path):
+        """
+        Reads the parameters from a json file and returns a dictionary with the parameters. It also checks that the
+        parameters do exist in the class attributes.
+        :param json_path:
+        :return:
+        """
+        data = json.load(open(json_path))
+        params = {}
+        for k, v in data.items():
+            if hasattr(MAEGG, k):
+                params[k] = v
+            else:
+                raise ValueError("Parameter {} not found in class attributes".format(k))
+        return params
+
+    @staticmethod
+    def read_preset(preset):
+        if preset == "small":
+            return small
+        elif preset == "medium":
+            return medium
+        elif preset == "large":
+            return large
+        elif preset == "very_large":
+            return very_large
 
     def __init__(self, n_agents, map_size, we: np.ndarray, inequality_mode, max_steps, apple_regen, donation_capacity,
                  survival_threshold, visual_radius, partial_observability, init_state="empty", track_history=True):
@@ -306,19 +334,7 @@ if __name__ == "__main__":
         id='MultiAgentEthicalGathering-v1',
         entry_point='EthicalGatheringGame.MultiAgentEthicalGathering:MAEGG')
 
-    config_dict = {
-        'n_agents': 3,
-        'map_size': 'very_large',
-        'we': [1, 2.6],
-        'inequality_mode': 'tie',
-        'max_steps': 500,
-        'apple_regen': 0.05,
-        'donation_capacity': 10,
-        'survival_threshold': 10,
-        'visual_radius': 5,
-        'partial_observability': True,
-        'init_state': 'full'
-    }
+    config_dict = MAEGG.read_preset("small")
 
     env = gym.make("MultiAgentEthicalGathering-v1", **config_dict)
     env.reset()
