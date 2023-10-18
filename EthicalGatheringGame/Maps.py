@@ -7,7 +7,7 @@ class Maps:
             list(' @@ '),
             list(' @  '),
             list('    ')]),
-        "medium.json": np.array([
+        "medium": np.array([
             list('     '),
             list('  @@ '),
             list('  @  '),
@@ -34,7 +34,7 @@ class Maps:
     sketches["large"] = sketches["very_large"][:, :16]
     apple_regen = {
         "small": 0.05,
-        "medium.json": 0.05,
+        "medium": 0.05,
         "large": 0.005,
         "very_large": 0.005
     }
@@ -45,7 +45,7 @@ class Maps:
         self.init_state = init_state
 
         self.current_state = Maps.sketches[self.sketch]
-        self.apple_cells = np.where(self.current_state == '@')
+        self.apple_cells = np.array(np.where(self.current_state == '@')).T
         self.spawn_able_cells = np.where(self.current_state == ' ')
 
         if self.init_state == "empty":
@@ -82,12 +82,19 @@ class Maps:
     def __getitem__(self, tup):
         return self.current_state[tup]
 
-    def regen_apples(self):
+    def regen_apples(self, agents):
         """
         Regenerates apples on the map with probability apple_regen. Using apple cells as a mask, we generate a random binomial
-        distribution with probability apple_regen and replace the apple cells with the result.
+        distribution with probability apple_regen and replace the apple cells with the result. Apples should not appear
+        on cells that are currently occupied by an agent.
         :return:
         """
-        mask = np.random.binomial(1, self.apple_regen, size=self.apple_cells[0].shape)
-        final_value = np.logical_or(mask, self.current_state[self.apple_cells] == '@')
-        self.current_state[self.apple_cells] = np.where(final_value, '@', ' ')
+        mask = np.random.binomial(1, self.apple_regen, size=self.apple_cells.shape[0])
+        # If an agent is on the cell, we don't want to spawn an apple there
+        for agent in agents:
+            aux = self.apple_cells != agent.position
+            mask = np.logical_and(mask, aux.sum(axis=1) > 0)
+
+        # If an apple is already on the cell, we want to keep it there
+        final_value = np.logical_or(mask, self.current_state[*self.apple_cells.T] == '@')
+        self.current_state[*self.apple_cells.T] = np.where(final_value, '@', ' ')

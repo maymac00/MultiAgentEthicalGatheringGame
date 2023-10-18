@@ -1,8 +1,5 @@
 import numpy as np
 
-import matplotlib
-
-matplotlib.use('GTK3Agg')
 from matplotlib import pyplot as plt
 
 import gym
@@ -239,7 +236,7 @@ class MAEGG(gym.Env):
             if 'picked_apple' in events:
                 reward[i, 0] += 1.0
 
-        self.map.regen_apples()
+        self.map.regen_apples(self.agents.values())
         nObservations = self.getObservation()
         info["donation_box"] = self.donation_box
         reward = np.dot(reward, self.we)
@@ -322,11 +319,12 @@ class MAEGG(gym.Env):
             agent.position += move_vec
             events.add("moved")
             # Did agent step on apple?
-            # TODO: add inequality variant
-            if self.map.current_state[*agent.position] == '@':
-                agent.apples += 1
-                self.map.current_state[*agent.position] = ' '
-                events.add("picked_apple")
+        if self.map.current_state[*agent.position] == '@':
+            if self.inequality_mode == "loss":
+                if np.binomial(agent.efficiency, 1/self.n_agents) > 0:
+                    agent.apples += 1
+                    self.map.current_state[*agent.position] = ' '
+                    events.add("picked_apple")
 
         if action == MAEGG.TAKE_DONATION:
             if agent.apples >= self.survival_threshold:

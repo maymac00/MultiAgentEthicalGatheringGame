@@ -1,5 +1,7 @@
 import gym
 import numpy as np
+import matplotlib
+matplotlib.use('TkAgg')
 from matplotlib import pyplot as plt
 from MultiAgentEthicalGathering import MAEGG
 
@@ -56,6 +58,7 @@ env.stash_runs = True
 env.reset()
 for r in range(2):
     env.reset()
+    acc_reward = [0,0]
     for i in range(env.max_steps):
         env.getObservation()
 
@@ -67,5 +70,5 @@ for r in range(2):
         acc_reward += reward
         # env.render()
     print(acc_reward)
-env.plot_results("blurr")
+env.plot_results("median")
 pass
