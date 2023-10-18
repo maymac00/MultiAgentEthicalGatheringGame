@@ -76,8 +76,9 @@ class MAEGG(gym.Env):
         elif preset == "very_large":
             return very_large
 
-    def __init__(self, n_agents, map_size, we: np.ndarray, inequality_mode, max_steps, apple_regen, donation_capacity,
-                 survival_threshold, visual_radius, partial_observability, init_state="empty", track_history=True):
+    def __init__(self, n_agents, map_size, we: np.ndarray, inequality_mode, max_steps, donation_capacity,
+                 survival_threshold, visual_radius, partial_observability, init_state="empty", track_history=False,
+                 efficiency: np.ndarray = None):
         super(MAEGG, self).__init__()
         # Parameters
         self.n_agents = n_agents
@@ -93,13 +94,15 @@ class MAEGG(gym.Env):
 
         # Variables
         self.map = Maps(sketch=self.map_size, init_state=init_state)
+        if efficiency is None:
+            self.efficiency = [i for i in range(1, self.n_agents+1)]
+        self.efficiency = efficiency
         self.agents = {k: Agent(self.map.get_spawn_coords(), k) for k in range(self.n_agents)}
-        # TODO: parametrize efficiency
         self.donation_box = 0
         self.steps = 0
 
         # Track history
-        self.track = False
+        self.track = track_history
         self.history = []
         self.stash_runs = True
         self.stash = []
@@ -321,7 +324,7 @@ class MAEGG(gym.Env):
             # Did agent step on apple?
         if self.map.current_state[*agent.position] == '@':
             if self.inequality_mode == "loss":
-                if np.binomial(agent.efficiency, 1/self.n_agents) > 0:
+                if np.random.binomial(agent.efficiency, 1/self.n_agents) > 0:
                     agent.apples += 1
                     self.map.current_state[*agent.position] = ' '
                     events.add("picked_apple")

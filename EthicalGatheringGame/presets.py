@@ -4,7 +4,6 @@ small = {
     "we": [1, 2.6],
     "inequality_mode": "tie",
     "max_steps": 500,
-    "apple_regen": 0.05,
     "donation_capacity": 5,
     "survival_threshold": 10,
     "visual_radius": 0,
@@ -17,7 +16,6 @@ medium = {
     "we": [1, 2.6],
     "inequality_mode": "tie",
     "max_steps": 500,
-    "apple_regen": 0.05,
     "donation_capacity": 5,
     "survival_threshold": 10,
     "visual_radius": 0,
@@ -30,12 +28,12 @@ large = {
     "we": [1, 2.6],
     "inequality_mode": "loss",
     "max_steps": 500,
-    "apple_regen": 0.005,
     "donation_capacity": 10,
     "survival_threshold": 15,
     "visual_radius": 4,
     "partial_observability": "True",
-    "init_state": "empty"
+    "init_state": "empty",
+    "efficiency": [1.0, 1.0, 5.0]
 }
 very_large = {
     "n_agents": 3,
@@ -43,10 +41,10 @@ very_large = {
     "we": [1, 2.6],
     "inequality_mode": "loss",
     "max_steps": 500,
-    "apple_regen": 0.005,
     "donation_capacity": 10,
     "survival_threshold": 15,
     "visual_radius": 4,
     "partial_observability": "True",
-    "init_state": "empty"
+    "init_state": "empty",
+    "efficiency": [1.0, 1.0, 1.0, 5.0, 5.0]
 }

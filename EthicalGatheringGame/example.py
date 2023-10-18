@@ -1,3 +1,4 @@
+
 import gym
 import numpy as np
 import matplotlib
@@ -49,16 +50,16 @@ def greedy_agent(grid, agent, env):
     return move
 
 
-config_dict = MAEGG.read_preset("small")
+config_dict = MAEGG.read_preset("large")
 env = MAEGG(**config_dict)
-acc_reward = [0, 0]
+acc_reward = [0] * env.n_agents
 
 env.track = True
 env.stash_runs = True
 env.reset()
-for r in range(2):
+for r in range(50):
     env.reset()
-    acc_reward = [0,0]
+    acc_reward = [0] * env.n_agents
     for i in range(env.max_steps):
         env.getObservation()
 
