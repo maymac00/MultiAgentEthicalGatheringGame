@@ -3,16 +3,16 @@ import numpy as np
 
 class Maps:
     sketches = {
-        "small": np.array([
+        "tiny": np.array([
             list(' @@ '),
             list(' @  '),
             list('    ')]),
-        "medium": np.array([
+        "small": np.array([
             list('     '),
             list('  @@ '),
             list('  @  '),
             list('     ')]),
-        "very_large": np.array([
+        "large": np.array([
             list('                                      '),
             list('             @      @@@@@       @     '),
             list('         @   @@         @@@    @  @   '),
@@ -31,12 +31,12 @@ class Maps:
             list('                                      ')
         ]),
     }
-    sketches["large"] = sketches["very_large"][:, :16]
+    sketches["medium"] = sketches["large"][:, :16]
     apple_regen = {
+        "tiny": 0.05,
         "small": 0.05,
-        "medium": 0.05,
-        "large": 0.005,
-        "very_large": 0.005
+        "medium": 0.005,
+        "large": 0.005
     }
 
     def __init__(self, sketch, init_state="empty"):
