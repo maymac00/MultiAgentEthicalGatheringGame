@@ -1,9 +1,11 @@
+
 import gym
 import numpy as np
 import matplotlib
 matplotlib.use('TkAgg')
 from matplotlib import pyplot as plt
-from MultiAgentEthicalGathering import MAEGG
+from EthicalGatheringGame import MAEGG
+from EthicalGatheringGame.presets import tiny, small, medium, large
 
 
 def greedy_agent(grid, agent, env):
@@ -41,6 +43,7 @@ def greedy_agent(grid, agent, env):
         return 5
     if agent.apples < env.survival_threshold and env.donation_box > 0:
         return 6
+
     target_positions = find_agent_and_targets(grid)
     target_pos = closest_target(agent.position, target_positions)
     if target_pos is None:
@@ -49,26 +52,24 @@ def greedy_agent(grid, agent, env):
     return move
 
 
-config_dict = MAEGG.read_preset("small")
-env = MAEGG(**config_dict)
-acc_reward = [0, 0]
+env = MAEGG(**tiny)
+acc_reward = [0] * env.n_agents
 
 env.track = True
 env.stash_runs = True
 env.reset()
-for r in range(2):
-    env.reset()
-    acc_reward = [0,0]
+for r in range(10):
+    obs, _ = env.reset()
+    acc_reward = [0] * env.n_agents
     for i in range(env.max_steps):
-        env.getObservation()
 
         actions = []
-        for ag in env.agents.values():
+        for k, ag in enumerate(env.agents.values()):
             actions.append(greedy_agent(env.map.current_state, ag, env))
 
         obs, reward, done, info = env.step(actions)
         acc_reward += reward
         # env.render()
     print(acc_reward)
-env.plot_results("median")
+env.plot_results("histogram")
 pass
