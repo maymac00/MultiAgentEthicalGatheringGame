@@ -484,3 +484,9 @@ class MAEGG(gym.Env):
             # Plot blurr
             raise NotImplementedError("Blurr plot not implemented yet")
         plt.show()
+
+    def setTrack(self, track):
+        self.track = track
+
+    def setStash(self, stash_runs):
+        self.stash_runs = stash_runs
