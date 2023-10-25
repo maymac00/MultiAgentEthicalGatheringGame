@@ -5,7 +5,7 @@ from matplotlib import pyplot as plt
 import gym
 import json
 from EthicalGatheringGame.Maps import Maps
-
+import bisect
 
 class Agent:
     # Alphabet for agent identification
@@ -134,11 +134,9 @@ class MAEGG(gym.Env):
         for ag in self.agents.values():
             global_state[*ag.position] = ag.id
 
-        donation_box_states = list(range(self.n_agents + 1)) + [self.donation_capacity - 1, self.donation_capacity]
-        donation_box_states = list(dict.fromkeys(donation_box_states).keys())
-        normalized_db_state = np.digitize(self.donation_box, donation_box_states) - 1
-        if normalized_db_state == len(donation_box_states) - 1:
-            normalized_db_state = len(donation_box_states) - 2
+        donation_box_states = list(range(self.n_agents + 1)) + [self.donation_capacity]
+        normalized_db_state = bisect.bisect_right(donation_box_states, self.donation_box) - 1
+        normalized_db_state /= (len(donation_box_states) - 1)
 
         if self.partial_observability:
 
