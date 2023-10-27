@@ -7,6 +7,7 @@ import json
 from EthicalGatheringGame.Maps import Maps
 import bisect
 
+
 class Agent:
     # Alphabet for agent identification
     alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
@@ -338,7 +339,10 @@ class MAEGG(gym.Env):
             if agent.apples > 0 and self.donation_box < self.donation_capacity:
                 self.donation_box += 1
                 agent.apples -= 1
-                events.add("donated")
+                if agent.apples < self.survival_threshold:
+                    events.add("suboptimal")
+                else:
+                    events.add("donated")
 
         if agent.apples >= self.survival_threshold:
             events.add("not hungry")
