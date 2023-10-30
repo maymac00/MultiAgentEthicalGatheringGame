@@ -7,7 +7,7 @@ import json
 from EthicalGatheringGame.Maps import Maps
 import bisect
 
-
+# TODO: Check env.Wrapper subclassing to achieve: action space mapping, callbacks, last action memory, etc. This will keep the base env simpler
 class Agent:
     # Alphabet for agent identification
     alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
@@ -225,8 +225,12 @@ class MAEGG(gym.Env):
         for i in range(self.n_agents):
             events = self.get_action_events(sorted_agents[i], action[i])
             info[sorted_agents[i].id] = {"events": events, "apples": sorted_agents[i].apples}
-            if 'donate' in events:
+            if 'donated' in events:
                 reward[i, 1] += 0.7
+                reward[i, 0] -= 1
+            if 'suboptimal' in events:
+                reward[i, 0] -= 1
+
             if 'greedy' in events:
                 reward[i, 1] += -1.0
             if 'hungry' in events:
