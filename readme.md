@@ -4,7 +4,7 @@
 This code is for a custom Gym environment called `MultiAgentEthicalGathering`. The environment consists of a 2D grid where multiple agents can move and pick apples. Agents can also donate apples to a common "donation box" and take apples from it.
 
 ### Requirements
-- Python 3.x
+- Python >= 3.11
 - NumPy
 - Gym
 - Matplotlib

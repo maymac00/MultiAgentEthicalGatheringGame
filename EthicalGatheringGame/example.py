@@ -1,7 +1,7 @@
-
 import gym
 import numpy as np
 import matplotlib
+
 matplotlib.use('TkAgg')
 from matplotlib import pyplot as plt
 from EthicalGatheringGame import MAEGG
@@ -72,4 +72,5 @@ for r in range(10):
         # env.render()
     print(acc_reward)
 env.plot_results("histogram")
+env.print_results()
 pass

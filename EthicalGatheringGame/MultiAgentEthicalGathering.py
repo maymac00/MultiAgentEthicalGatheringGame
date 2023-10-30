@@ -7,6 +7,7 @@ import json
 from EthicalGatheringGame.Maps import Maps
 import bisect
 
+
 # TODO: Check env.Wrapper subclassing to achieve: action space mapping, callbacks, last action memory, etc. This will keep the base env simpler
 class Agent:
     # Alphabet for agent identification
@@ -490,6 +491,28 @@ class MAEGG(gym.Env):
             # Plot blurr
             raise NotImplementedError("Blurr plot not implemented yet")
         plt.show()
+
+    def print_results(self):
+        if len(self.history) > 0:
+            self.stash.append(self.build_history_array())
+        self.history = []
+
+        # Combine histogram from stash
+        event_histogram = []
+        for h in self.stash:
+            event_histogram.append(h[1])
+        event_histogram = np.array(event_histogram)
+        event_histogram = np.sum(event_histogram, axis=0)
+
+        # Pretty print histogram for each agent in different columns
+        print(f"Agent | {' | '.join([tag.ljust(13) for tag in event_histogram[0].keys()])}")
+        print("-" * (15 + 15 * len(event_histogram[0])))
+        for i in range(len(event_histogram)):
+            print(f"{i}     | {' | '.join([str(event_histogram[i][tag]).ljust(13) for tag in event_histogram[i].keys()])}")
+
+
+
+
 
     def setTrack(self, track):
         self.track = track
