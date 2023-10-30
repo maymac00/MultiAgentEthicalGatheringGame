@@ -497,18 +497,28 @@ class MAEGG(gym.Env):
             self.stash.append(self.build_history_array())
         self.history = []
 
+        all_tags = set()
+
         # Combine histogram from stash
         event_histogram = []
         for h in self.stash:
             event_histogram.append(h[1])
-        event_histogram = np.array(event_histogram)
-        event_histogram = np.sum(event_histogram, axis=0)
+            for c in h[1]:
+                all_tags = all_tags.union(set(c.keys()))
 
+        # Remove irrelevant events from the histogram and register all tags
+        all_tags.discard('not hungry')
+        all_tags.discard('moved')
+
+        counter = np.zeros((self.n_agents, len(all_tags)))
+        for h in event_histogram:
+            for i in range(self.n_agents):
+                counter[i] += np.array([h[i][tag] for tag in all_tags])
         # Pretty print histogram for each agent in different columns
-        print(f"Agent | {' | '.join([tag.ljust(13) for tag in event_histogram[0].keys()])}")
+        print(f"Agent | {' | '.join([tag.ljust(13) for tag in all_tags])}")
         print("-" * (15 + 15 * len(event_histogram[0])))
-        for i in range(len(event_histogram)):
-            print(f"{i}     | {' | '.join([str(event_histogram[i][tag]).ljust(13) for tag in event_histogram[i].keys()])}")
+        for i in range(self.n_agents):
+            print(f"{i}     | {' | '.join([str(int(c)).ljust(13) for c in counter[i]])}")
 
 
 
