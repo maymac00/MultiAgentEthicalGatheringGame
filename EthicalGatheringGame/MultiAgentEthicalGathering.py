@@ -493,39 +493,49 @@ class MAEGG(gym.Env):
         plt.show()
 
     def print_results(self):
-        if len(self.history) > 0:
-            self.stash.append(self.build_history_array())
-        self.history = []
+        """
 
-        all_tags = set()
-
-        # Combine histogram from stash
-        event_histogram = []
-        for h in self.stash:
-            event_histogram.append(h[1])
-            for c in h[1]:
-                all_tags = all_tags.union(set(c.keys()))
-
-        # Remove irrelevant events from the histogram and register all tags
-        all_tags.discard('not hungry')
-        all_tags.discard('moved')
-
-        counter = np.zeros((self.n_agents, len(all_tags)))
-        for h in event_histogram:
-            for i in range(self.n_agents):
-                counter[i] += np.array([h[i][tag] for tag in all_tags])
+        :return:
+        """
+        header, histogram = self.get_results("histogram")
         # Pretty print histogram for each agent in different columns
-        print(f"Agent | {' | '.join([tag.ljust(13) for tag in all_tags])}")
-        print("-" * (15 + 15 * len(event_histogram[0])))
+        print(f"Agent | {' | '.join([tag.ljust(13) for tag in header])}")
+        print("-" * (15 + 15 * len(histogram[0])))
         for i in range(self.n_agents):
-            print(f"{i}     | {' | '.join([str(int(c)).ljust(13) for c in counter[i]])}")
+            print(f"{i}     | {' | '.join([str(int(c)).ljust(13) for c in histogram[i]])}")
 
+    def get_results(self, type="histogram"):
+        if type == "histogram":
+            if len(self.history) > 0:
+                self.stash.append(self.build_history_array())
+            self.history = []
 
+            all_tags = set()
 
+            # Combine histogram from stash
+            event_histogram = []
+            for h in self.stash:
+                event_histogram.append(h[1])
+                for c in h[1]:
+                    all_tags = all_tags.union(set(c.keys()))
 
+            # Remove irrelevant events from the histogram and register all tags
+            all_tags.discard('not hungry')
+            all_tags.discard('moved')
+
+            counter = np.zeros((self.n_agents, len(all_tags)))
+            for h in event_histogram:
+                for i in range(self.n_agents):
+                    counter[i] += np.array([h[i][tag] for tag in all_tags])
+
+            return all_tags, counter
 
     def setTrack(self, track):
         self.track = track
 
     def setStash(self, stash_runs):
         self.stash_runs = stash_runs
+
+    def resetStash(self):
+        self.stash = []
+        self.history = []

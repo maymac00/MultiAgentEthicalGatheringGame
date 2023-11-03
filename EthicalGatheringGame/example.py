@@ -72,5 +72,6 @@ for r in range(10):
         # env.render()
     print(acc_reward)
 env.plot_results("histogram")
+env.get_results()
 env.print_results()
 pass
