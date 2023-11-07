@@ -24,7 +24,7 @@ class DummyPeers(gym.Wrapper):
 
     def step(self, action):
         # Set all actions but last to STAY
-        for i in range(len(action) - 1):
+        for i in range(len(action)):
             if self.dummy_mask[i]:
                 action[i] = MAEGG.STAY
         return super().step(action)
