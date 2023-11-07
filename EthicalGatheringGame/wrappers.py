@@ -1,4 +1,4 @@
-from MultiAgentEthicalGathering import MAEGG
+from EthicalGatheringGame.MultiAgentEthicalGathering import MAEGG
 from presets import tiny, small, medium, large
 
 """
