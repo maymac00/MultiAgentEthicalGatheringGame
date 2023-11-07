@@ -12,16 +12,21 @@ import numpy as np
 class DummyPeers(gym.Wrapper):
     """
     This wrapper replaces the peers' actions with a dummy action.
+    The dummy mask is a list of booleans, where True means that the agent's action is replaced with a dummy action.
     """
 
-    def __init__(self, env):
+    def __init__(self, env, dummy_mask):
         super().__init__(env)
         self.env = env
+        self.dummy_mask = dummy_mask
+        if len(dummy_mask) != self.env.n_agents:
+            raise ValueError("Dummy mask must be of length n_agents")
 
     def step(self, action):
         # Set all actions but last to STAY
         for i in range(len(action) - 1):
-            action[i] = MAEGG.STAY
+            if self.dummy_mask[i]:
+                action[i] = MAEGG.STAY
         return super().step(action)
 
 
