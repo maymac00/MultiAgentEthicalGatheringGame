@@ -1,5 +1,5 @@
 from EthicalGatheringGame.MultiAgentEthicalGathering import MAEGG
-from presets import tiny, small, medium, large
+from EthicalGatheringGame.presets import tiny, small, medium, large
 
 """
 This file contains different wrappers around the MAEGG RL environment using Gym interface.
