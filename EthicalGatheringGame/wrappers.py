@@ -23,7 +23,6 @@ class DummyPeers(gym.Wrapper):
             raise ValueError("Dummy mask must be of length n_agents")
 
     def step(self, action):
-        # Set all actions but last to STAY
         for i in range(len(action)):
             if self.dummy_mask[i]:
                 action[i] = MAEGG.STAY
