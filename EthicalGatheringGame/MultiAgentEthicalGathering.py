@@ -280,7 +280,7 @@ class MAEGG(gym.Env):
 
         if mode == "text":
             for ag in self.agents.values():
-                frame[self.agents[ag]] = ag.id
+                frame[*ag.position] = ag.id
             print(frame)
 
         elif mode == "human":
