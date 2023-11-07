@@ -502,7 +502,7 @@ class MAEGG(gym.Env):
         print(f"Agent | {' | '.join([tag.ljust(13) for tag in header])}")
         print("-" * (15 + 15 * len(histogram[0])))
         for i in range(self.n_agents):
-            print(f"{i}     | {' | '.join([str(int(c)).ljust(13) for c in histogram[i]])}")
+            print(f"{i}     | {' | '.join([str(c).ljust(13) for c in histogram[i]])}")
 
     def get_results(self, type="histogram"):
         if type == "histogram":
