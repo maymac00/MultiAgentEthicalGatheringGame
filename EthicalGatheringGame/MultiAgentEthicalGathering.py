@@ -527,6 +527,7 @@ class MAEGG(gym.Env):
             for h in event_histogram:
                 for i in range(self.n_agents):
                     counter[i] += np.array([h[i][tag] for tag in all_tags])
+            counter = counter/len(self.stash)
 
             return all_tags, counter
 
