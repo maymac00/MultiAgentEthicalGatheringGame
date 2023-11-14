@@ -248,7 +248,7 @@ class MAEGG(gym.Env):
         if self.track:
             self.history.append(info)
 
-        return nObservations, np.array([ag.r for ag in self.agents.values()]), done, info
+        return nObservations, np.array([ag.r for ag in self.agents.values()]), [done] * self.n_agents, info
 
     def reset(self, seed=None):
         """
