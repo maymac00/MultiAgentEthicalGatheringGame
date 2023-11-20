@@ -1,3 +1,5 @@
+from gym.wrappers.normalize import RunningMeanStd
+
 from EthicalGatheringGame.MultiAgentEthicalGathering import MAEGG
 from EthicalGatheringGame.presets import tiny, small, medium, large
 
@@ -29,14 +31,43 @@ class DummyPeers(gym.Wrapper):
         return super().step(action)
 
 
+class NormalizeReward(gym.core.Wrapper):
+    """
+    This class wraps normalize reward from gym to work with multiple agents.
+    """
+
+    def __init__(self, env, epsilon=1e-8):
+        super().__init__(env)
+        self.env = env
+        self.gamma = getattr(env, "gamma", False)
+        self.epsilon = 1e-8
+
+        self.return_rms = RunningMeanStd(shape=())
+        self.returns = np.zeros(env.n_agents)
+
+    def step(self, action):
+        obs, rews, dones, infos = self.env.step(action)
+        self.returns = self.returns * self.gamma + rews
+        rews = self.normalize(rews)
+
+        self.returns[dones] = 0.0
+        return obs, rews, dones, infos
+
+    def normalize(self, rews):
+        self.return_rms.update(self.returns)
+        return rews / np.sqrt(self.return_rms.var + self.epsilon)
+
+
 if __name__ == "__main__":
     """
     Wrapper testing
     """
     env = gym.make("MultiAgentEthicalGathering-v1", **tiny)
-    env = DummyPeers(env)
+    # env = DummyPeers(env)
+    env = NormalizeReward(env)
+    env.we = [1, 999]
     env.reset()
-    for i in range(10):
-        obs, _, _, _ = env.step([np.random.randint(0, 5) for _ in range(env.n_agents)])
-        env.render(mode="text")
+    for i in range(100):
+        obs, rews, _, _ = env.step([np.random.randint(0, 5) for _ in range(env.n_agents)])
+        print(rews)
     pass
