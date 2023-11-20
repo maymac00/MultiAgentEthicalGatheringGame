@@ -75,6 +75,8 @@ class MAEGG(gym.Env):
                  survival_threshold, visual_radius, partial_observability, init_state="empty", track_history=False,
                  efficiency: np.ndarray = None):
         super(MAEGG, self).__init__()
+        Agent.idx = 0
+
         # Parameters
         self.n_agents = n_agents
         self.map_size = map_size
