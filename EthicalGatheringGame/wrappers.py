@@ -36,10 +36,10 @@ class NormalizeReward(gym.core.Wrapper):
     This class wraps normalize reward from gym to work with multiple agents.
     """
 
-    def __init__(self, env, epsilon=1e-8):
+    def __init__(self, env, epsilon=1e-8, gamma=0.99):
         super().__init__(env)
         self.env = env
-        self.gamma = getattr(env, "gamma", False)
+        self.gamma = gamma
         self.epsilon = 1e-8
 
         self.return_rms = RunningMeanStd(shape=())

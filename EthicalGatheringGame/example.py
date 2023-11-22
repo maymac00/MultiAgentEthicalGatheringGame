@@ -6,6 +6,7 @@ matplotlib.use('TkAgg')
 from matplotlib import pyplot as plt
 from EthicalGatheringGame import MAEGG
 from EthicalGatheringGame.presets import tiny, small, medium, large
+from EthicalGatheringGame.wrappers import NormalizeReward
 
 
 def greedy_agent(grid, agent, env):
@@ -51,8 +52,9 @@ def greedy_agent(grid, agent, env):
     move = greedy_move(agent.position, target_pos)
     return move
 
-
+tiny["we"] = [1, 99]
 env = MAEGG(**tiny)
+env = NormalizeReward(env)
 acc_reward = [0] * env.n_agents
 
 env.track = True
@@ -69,6 +71,7 @@ for r in range(10):
 
         obs, reward, done, info = env.step(actions)
         acc_reward += reward
+        print(reward)
         # env.render()
     print(acc_reward)
 env.plot_results("histogram")
