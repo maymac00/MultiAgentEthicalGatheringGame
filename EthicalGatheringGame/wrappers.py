@@ -40,17 +40,18 @@ class NormalizeReward(gym.core.Wrapper):
         super().__init__(env)
         self.env = env
         self.gamma = gamma
-        self.epsilon = 1e-8
+        self.epsilon = epsilon
+        self.active = True
 
         self.return_rms = RunningMeanStd(shape=())
         self.returns = np.zeros(env.n_agents)
 
     def step(self, action):
         obs, rews, dones, infos = self.env.step(action)
-        self.returns = self.returns * self.gamma + rews
-        rews = self.normalize(rews)
-
-        self.returns[dones] = 0.0
+        if self.active:
+            self.returns = self.returns * self.gamma + rews
+            rews = self.normalize(rews)
+            self.returns[dones] = 0.0
         return obs, rews, dones, infos
 
     def normalize(self, rews):
