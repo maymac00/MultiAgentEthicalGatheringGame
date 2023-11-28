@@ -21,6 +21,9 @@ class DummyPeers(gym.Wrapper):
         super().__init__(env)
         self.env = env
         self.dummy_mask = dummy_mask
+
+        env.logger.info("Dummy peers wrapper initialized")
+        env.logger.info(f"Dummy mask: {dummy_mask}")
         if len(dummy_mask) != self.env.n_agents:
             raise ValueError("Dummy mask must be of length n_agents")
 
@@ -45,6 +48,9 @@ class NormalizeReward(gym.core.Wrapper):
 
         self.return_rms = RunningMeanStd(shape=())
         self.returns = np.zeros(env.n_agents)
+
+        env.logger.info("Normalize reward wrapper initialized")
+        env.logger.info(f"Gamma: {gamma}")
 
     def step(self, action):
         obs, rews, dones, infos = self.env.step(action)

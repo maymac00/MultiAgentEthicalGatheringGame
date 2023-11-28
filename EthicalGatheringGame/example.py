@@ -52,6 +52,7 @@ def greedy_agent(grid, agent, env):
     move = greedy_move(agent.position, target_pos)
     return move
 
+
 tiny["we"] = [1, 99]
 env = MAEGG(**tiny)
 env = NormalizeReward(env)
