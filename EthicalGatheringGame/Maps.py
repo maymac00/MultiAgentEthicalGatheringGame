@@ -98,3 +98,10 @@ class Maps:
         # If an apple is already on the cell, we want to keep it there
         final_value = np.logical_or(mask, self.current_state[*self.apple_cells.T] == '@')
         self.current_state[*self.apple_cells.T] = np.where(final_value, '@', ' ')
+
+    def spawn_all_apples(self):
+        """
+        Spawns apples on all apple cells
+        :return:
+        """
+        self.current_state[*self.apple_cells.T] = '@'
