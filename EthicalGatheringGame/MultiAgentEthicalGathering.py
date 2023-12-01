@@ -6,6 +6,7 @@ import gym
 import json
 from EthicalGatheringGame.Maps import Maps
 import bisect
+import logging
 
 
 # TODO: Check env.Wrapper subclassing to achieve: action space mapping, callbacks, last action memory, etc. This will keep the base env simpler
@@ -79,6 +80,16 @@ class MAEGG(gym.Env):
         super(MAEGG, self).__init__()
         Agent.idx = 0
 
+        # Logging
+        self.logger = logging.getLogger(self.__class__.__name__)
+        self.logger.setLevel(logging.DEBUG)
+        if not self.logger.hasHandlers():
+            ch = logging.StreamHandler()
+            ch.setLevel(logging.DEBUG)
+            formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+            ch.setFormatter(formatter)
+            self.logger.addHandler(ch)
+
         # Parameters
         self.n_agents = n_agents
         self.map_size = map_size
@@ -118,6 +129,15 @@ class MAEGG(gym.Env):
         else:
             self.observation_space = gym.spaces.Box(low=0, high=1, shape=(np.prod(self.map.current_state.shape) + 2,),
                                                     dtype=np.float32)
+
+        # Log relevant info
+        self.logger.info("Environment initialized with parameters:")
+        self.logger.info("n_agents: {}".format(self.n_agents))
+        self.logger.info("map_size: {}".format(self.map_size))
+        self.logger.info("inequality_mode: {}".format(self.inequality_mode))
+        self.logger.info("donation_capacity: {}".format(self.donation_capacity))
+        self.logger.info("survival_threshold: {}".format(self.survival_threshold))
+        self.logger.info("Weights: {}".format(self.we))
 
     def getObservation(self):
         """
@@ -532,7 +552,7 @@ class MAEGG(gym.Env):
             for h in event_histogram:
                 for i in range(self.n_agents):
                     counter[i] += np.array([h[i][tag] for tag in all_tags])
-            counter = counter/len(self.stash)
+            counter = counter / len(self.stash)
             counter = np.round(counter, 2)
 
             return all_tags, counter
