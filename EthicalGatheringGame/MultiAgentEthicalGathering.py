@@ -33,6 +33,7 @@ class Agent:
         self.position = np.array(position)
         self.apples = 0
         self.r = 0
+        self.r_vec = np.zeros(2)
 
     def __gt__(self, other):
         return self.efficiency > other.efficiency
