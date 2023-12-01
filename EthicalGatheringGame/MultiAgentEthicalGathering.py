@@ -21,6 +21,7 @@ class Agent:
         self.color = Agent.colors[Agent.idx]
 
         self.r = 0
+        self.r_vec = np.zeros(2)
 
         self.apples = 0
         self.efficiency = efficiency
@@ -30,6 +31,7 @@ class Agent:
     def reset(self, position):
         self.position = np.array(position)
         self.apples = 0
+        self.r = 0
 
     def __gt__(self, other):
         return self.efficiency > other.efficiency
@@ -242,6 +244,7 @@ class MAEGG(gym.Env):
                 reward[i, 0] += 1.0
 
             sorted_agents[i].r = np.dot(reward[i], self.we)
+            sorted_agents[i].r_vec += reward[i]
 
         self.map.regen_apples(self.agents.values())
         nObservations = self.getObservation()
