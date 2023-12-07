@@ -326,6 +326,46 @@ class MAEGG(gym.Env):
             plt.title(text)
             plt.pause(pause)
             plt.clf()
+
+        elif mode == "partial_observability":
+            if not self.partial_observability:
+                raise ValueError("Partial observability is disabled for full observability maps")
+            rgb_frame = np.zeros((frame.shape[0], frame.shape[1], 3))
+            rgb_frame[frame == '@'] = [0, 1, 0]
+            for ag in self.agents.values():
+                rgb_frame[ag.position[0], ag.position[1], :] = [1, 0, 0]
+
+            # Set to grey the cells that are not visible
+            mask = np.zeros((*rgb_frame.shape[:-1], self.n_agents))
+            for k, ag in enumerate(self.agents.values()):
+                x, y = ag.position
+                xo = max(x - self.visual_radius, 0)
+                yo = max(y - self.visual_radius, 0)
+                x1 = min(x + self.visual_radius + 1, rgb_frame.shape[0])
+                y1 = min(y + self.visual_radius + 1, rgb_frame.shape[1])
+                mask[xo:x1, yo:y1, k] = 1
+
+            mask = np.any(mask, axis=2)
+
+            # Set number of apples per agent and donation box as title
+            text = ""
+            for ag in self.agents.values():
+                text += "{}: {} ".format(ag.id, ag.apples)
+            text += "Donation Box: {}".format(self.donation_box)
+
+            plt.figure(1)
+            plt.subplot(1, 2, 1)
+            plt.imshow(rgb_frame)
+            plt.axis("off")
+            plt.title(text)
+            plt.subplot(1, 2, 2)
+            rgb_frame[mask == 0] = [0.5, 0.5, 0.5]
+            plt.imshow(rgb_frame)
+            plt.axis("off")
+            plt.title("Masked")
+            plt.show(block=False)
+            plt.pause(0.05)
+            plt.clf()
         pass
 
     def get_action_events(self, agent, action):
