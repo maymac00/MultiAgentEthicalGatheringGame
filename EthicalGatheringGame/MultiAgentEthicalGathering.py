@@ -113,6 +113,11 @@ class MAEGG(gym.Env):
         self.agents = {k: Agent(self.map.get_spawn_coords(), self.efficiency[k]) for k in range(self.n_agents)}
         self.donation_box = 0
         self.steps = 0
+        self.sim_data = {
+            "donation_box_full": -1,
+            "all_survived": -1,
+            "all_done": -1,
+        }
 
         # Track history
         self.track = track_history
@@ -269,7 +274,17 @@ class MAEGG(gym.Env):
 
         self.map.regen_apples(self.agents.values())
         nObservations = self.getObservation()
-        info["donation_box"] = self.donation_box
+
+        if self.sim_data["donation_box_full"] == -1 and self.donation_box == self.donation_capacity:
+            self.sim_data["donation_box_full"] = self.steps
+
+        if self.sim_data["all_survived"] == -1 and all([ag.apples >= self.survival_threshold for ag in self.agents.values()]):
+            self.sim_data["all_survived"] = self.steps
+
+        if self.sim_data["all_done"] == -1 and self.sim_data["donation_box_full"] != -1 and self.sim_data["all_survived"] != -1:
+            self.sim_data["all_done"] = self.steps
+
+        info["sim_data"] = self.sim_data
 
         if self.track:
             self.history.append(info)
@@ -288,6 +303,12 @@ class MAEGG(gym.Env):
 
         for ag in self.agents.values():
             ag.reset(self.map.get_spawn_coords())
+
+        self.sim_data = {
+            "donation_box_full": -1,
+            "all_survived": -1,
+            "all_done": -1,
+        }
 
         self.donation_box = 0
         self.steps = 0

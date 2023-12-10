@@ -72,9 +72,10 @@ for r in range(10):
 
         obs, reward, done, info = env.step(actions)
         acc_reward += reward
-        print(reward)
-        env.render("partial_observability", pause=2)
+        # print(reward)
+        # env.render("partial_observability", pause=2)
     print(acc_reward)
+    print(info["sim_data"])
 env.plot_results("histogram")
 env.get_results()
 env.print_results()
