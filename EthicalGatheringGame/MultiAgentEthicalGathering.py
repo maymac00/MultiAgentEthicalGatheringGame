@@ -285,6 +285,7 @@ class MAEGG(gym.Env):
             self.sim_data["all_done"] = self.steps
 
         info["sim_data"] = self.sim_data
+        info["donation_box"] = self.donation_box
 
         if self.track:
             self.history.append(info)
@@ -523,6 +524,8 @@ class MAEGG(gym.Env):
 
         if type == "median":
 
+            if len(self.history) == 0 and len(self.stash) == 0:
+                raise ValueError("No history to plot")
             if len(self.history) > 0:
                 self.stash.append(self.build_history_array())
             self.history = []

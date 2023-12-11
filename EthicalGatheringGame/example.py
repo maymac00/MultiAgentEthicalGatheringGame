@@ -1,8 +1,10 @@
+import copy
+
 import gym
 import numpy as np
 import matplotlib
 
-matplotlib.use('Gtk3Agg')
+matplotlib.use('TkAgg')
 from matplotlib import pyplot as plt
 from EthicalGatheringGame import MAEGG
 from EthicalGatheringGame.presets import tiny, small, medium, large
@@ -53,13 +55,15 @@ def greedy_agent(grid, agent, env):
     return move
 
 
-tiny["we"] = [1, 99]
-env = MAEGG(**medium)
-env = NormalizeReward(env)
-acc_reward = [0] * env.n_agents
-
+preset = copy.copy(medium)
+preset["we"] = [1, 99]
+env = MAEGG(**preset)
 env.track = True
 env.stash_runs = True
+
+acc_reward = [0] * env.n_agents
+
+
 env.reset()
 for r in range(10):
     obs, _ = env.reset()
@@ -76,7 +80,7 @@ for r in range(10):
         # env.render("partial_observability", pause=2)
     print(acc_reward)
     print(info["sim_data"])
-env.plot_results("histogram")
+env.plot_results("median")
 env.get_results()
 env.print_results()
 pass
