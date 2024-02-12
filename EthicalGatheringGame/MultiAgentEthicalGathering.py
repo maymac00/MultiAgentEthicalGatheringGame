@@ -83,7 +83,7 @@ class MAEGG(gym.Env):
 
         # Logging
         self.logger = logging.getLogger(self.__class__.__name__)
-        self.logger.setLevel(logging.DEBUG)
+        self.logger.setLevel(logging.ERROR)
         if not self.logger.hasHandlers():
             ch = logging.StreamHandler()
             ch.setLevel(logging.DEBUG)
@@ -513,7 +513,7 @@ class MAEGG(gym.Env):
         if type == "line":
             history_array, event_histogram = self.build_history_array()
             for i in range(1, self.n_agents + 1):
-                plt.plot(history_array[:, i], label="Agent {}".format(i - 1), color=colors[i - 1])
+                plt.plot(history_array[:, i], label="Agent {}".format(i), color=colors[i - 1])
             plt.plot(history_array[:, 0], label="Donation Box", color='green')
             # Plot survival threshold and donation capacity
             plt.plot([0, self.max_steps], [self.survival_threshold, self.survival_threshold],
@@ -535,7 +535,7 @@ class MAEGG(gym.Env):
             median = np.median(apple_history, axis=0)
             iqr = np.percentile(apple_history, 75, axis=0) - np.percentile(apple_history, 25, axis=0)
             for i in range(1, self.n_agents + 1):
-                plt.plot(median[:, i], label="Agent {}".format(i - 1), color=colors[i - 1])
+                plt.plot(median[:, i], label="Agent {}".format(i), color=colors[i - 1])
                 plt.fill_between(range(self.max_steps), median[:, i] - iqr[:, i], median[:, i] + iqr[:, i],
                                  alpha=0.2, color=colors[i - 1])
             plt.plot(median[:, 0], label="Donation Box", color='green')
@@ -559,7 +559,7 @@ class MAEGG(gym.Env):
             mean = np.mean(apple_history, axis=0)
             std = np.std(apple_history, axis=0)
             for i in range(1, self.n_agents + 1):
-                plt.plot(mean[:, i], label="Agent {}".format(i - 1), color=colors[i - 1])
+                plt.plot(mean[:, i], label="Agent {}".format(i), color=colors[i - 1])
                 plt.fill_between(range(self.max_steps), mean[:, i] - std[:, i], mean[:, i] + std[:, i],
                                  alpha=0.2, color=colors[i - 1])
             plt.plot(mean[:, 0], label="Donation Box", color='green')
