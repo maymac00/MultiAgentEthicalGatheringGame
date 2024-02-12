@@ -36,7 +36,7 @@ class Maps:
         "tiny": 0.05,
         "small": 0.05,
         "medium": 0.005,
-        "large": 0.005
+        "large": 0.004
     }
 
     def __init__(self, sketch, init_state="empty"):

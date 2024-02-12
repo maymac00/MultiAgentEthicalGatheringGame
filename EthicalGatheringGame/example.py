@@ -55,8 +55,10 @@ def greedy_agent(grid, agent, env):
     return move
 
 
-preset = copy.copy(medium)
+preset = copy.copy(large)
 preset["we"] = [1, 99]
+preset["donation_capacity"] = 10
+preset["max_steps"] = 500
 env = MAEGG(**preset)
 env.track = True
 env.stash_runs = True
