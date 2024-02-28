@@ -1,3 +1,5 @@
+from collections import deque
+
 import numpy as np
 
 from matplotlib import pyplot as plt
@@ -14,17 +16,25 @@ class Agent:
     # Alphabet for agent identification
     alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
     idx = 0
-    colors = ["blue", "orange", "magenta", "cyan", "brown", "pink", "yellow"]
+    colors = ["blue", "orange", "magenta", "cyan", "brown", "pink", "yellow", "purple"]
+    group_id = {}
 
-    def __init__(self, position, efficiency=0):
+    def __init__(self, position, efficiency=0, color_by_efficiency=False):
         self.position = np.array(position)
         self.id = Agent.alphabet[Agent.idx]
-        self.color = Agent.colors[Agent.idx]
 
         self.r = 0
         self.r_vec = np.zeros(2)
 
         self.apples = 0
+        self.gather_tries = 0
+        self.gathered = 0
+        if color_by_efficiency:
+            if efficiency not in Agent.group_id:
+                Agent.group_id[efficiency] = Agent.colors[len(Agent.group_id.keys())]
+            self.color = Agent.group_id[efficiency]
+        else:
+            self.color = Agent.colors[Agent.idx]
         self.efficiency = efficiency
 
         Agent.idx += 1
@@ -32,6 +42,8 @@ class Agent:
     def reset(self, position):
         self.position = np.array(position)
         self.apples = 0
+        self.gather_tries = 0
+        self.gathered = 0
         self.r = 0
         self.r_vec = np.zeros(2)
 
@@ -77,9 +89,10 @@ class MAEGG(gym.Env):
 
     def __init__(self, n_agents, map_size, we: np.ndarray, inequality_mode, max_steps, donation_capacity,
                  survival_threshold, visual_radius, partial_observability, init_state="empty", track_history=False,
-                 efficiency: np.ndarray = None):
+                 efficiency: np.ndarray = None, color_by_efficiency=False):
         super(MAEGG, self).__init__()
         Agent.idx = 0
+        Agent.group_id = {}
 
         # Logging
         self.logger = logging.getLogger(self.__class__.__name__)
@@ -101,6 +114,7 @@ class MAEGG(gym.Env):
         self.survival_threshold = survival_threshold
         self.visual_radius = visual_radius
         self.partial_observability = partial_observability
+        self.color_by_efficiency = color_by_efficiency
         self.init_state = init_state
 
         # Variables
@@ -110,7 +124,8 @@ class MAEGG(gym.Env):
         if efficiency is None:
             self.efficiency = [i for i in range(1, self.n_agents + 1)]
 
-        self.agents = {k: Agent(self.map.get_spawn_coords(), self.efficiency[k]) for k in range(self.n_agents)}
+        self.agents = {k: Agent(self.map.get_spawn_coords(), self.efficiency[k], color_by_efficiency) for k in
+                       range(self.n_agents)}
         self.donation_box = 0
         self.steps = 0
         self.sim_data = {
@@ -124,6 +139,8 @@ class MAEGG(gym.Env):
         self.history = []
         self.stash_runs = True
         self.stash = []
+        self.gen_apples = 0  # Generated apples
+        self.apple_gen_statistic = deque(maxlen=100)
 
         # Env Setup
         self.action_space = gym.spaces.Discrete(7)
@@ -272,16 +289,19 @@ class MAEGG(gym.Env):
             sorted_agents[i].r = np.dot(reward[i], self.we)
             sorted_agents[i].r_vec += reward[i]
 
-        self.map.regen_apples(self.agents.values())
+        generated_apples = self.map.regen_apples(self.agents.values())
+        self.gen_apples += generated_apples
         nObservations = self.getObservation()
 
         if self.sim_data["donation_box_full"] == -1 and self.donation_box == self.donation_capacity:
             self.sim_data["donation_box_full"] = self.steps
 
-        if self.sim_data["all_survived"] == -1 and all([ag.apples >= self.survival_threshold for ag in self.agents.values()]):
+        if self.sim_data["all_survived"] == -1 and all(
+                [ag.apples >= self.survival_threshold for ag in self.agents.values()]):
             self.sim_data["all_survived"] = self.steps
 
-        if self.sim_data["all_done"] == -1 and self.sim_data["donation_box_full"] != -1 and self.sim_data["all_survived"] != -1:
+        if self.sim_data["all_done"] == -1 and self.sim_data["donation_box_full"] != -1 and self.sim_data[
+            "all_survived"] != -1:
             self.sim_data["all_done"] = self.steps
 
         info["sim_data"] = self.sim_data
@@ -317,7 +337,8 @@ class MAEGG(gym.Env):
         if self.track and self.stash_runs and len(self.history) > 0:
             self.stash.append(self.build_history_array())
         self.history = []
-
+        self.apple_gen_statistic.append(self.gen_apples)
+        self.gen_apples = 0
         return (self.getObservation(), {
             "donation_box": self.donation_box,
             "steps": self.steps,
@@ -412,12 +433,15 @@ class MAEGG(gym.Env):
         # Did agent step on apple?
         if self.map.current_state[*agent.position] == '@':
             self.map.current_state[*agent.position] = ' '
+            agent.gather_tries += 1
             if self.inequality_mode == "loss":
                 if np.random.binomial(agent.efficiency, 1 / self.n_agents) > 0:
                     agent.apples += 1
+                    agent.gathered += 1
                     events.add("picked_apple")
             else:
                 agent.apples += 1
+                agent.gathered += 1
                 events.add("picked_apple")
 
         if action == MAEGG.TAKE_DONATION:
@@ -534,8 +558,16 @@ class MAEGG(gym.Env):
             apple_history = np.array([s[0] for s in self.stash])
             median = np.median(apple_history, axis=0)
             iqr = np.percentile(apple_history, 75, axis=0) - np.percentile(apple_history, 25, axis=0)
+            seen_groups = set()
             for i in range(1, self.n_agents + 1):
-                plt.plot(median[:, i], label="Agent {}".format(i - 1), color=colors[i - 1])
+                label = "Agent {}".format(i - 1)
+                if self.color_by_efficiency:
+                    label = "Group Efficiency {}".format(self.efficiency[i - 1])
+                    if label in seen_groups:
+                        label = "_nolegend_"  # Don't add the same label twice
+                    else:
+                        seen_groups.add(label)
+                plt.plot(median[:, i], label=label, color=colors[i - 1])
                 plt.fill_between(range(self.max_steps), median[:, i] - iqr[:, i], median[:, i] + iqr[:, i],
                                  alpha=0.2, color=colors[i - 1])
             plt.plot(median[:, 0], label="Donation Box", color='green')

@@ -87,7 +87,7 @@ class Maps:
         Regenerates apples on the map with probability apple_regen. Using apple cells as a mask, we generate a random binomial
         distribution with probability apple_regen and replace the apple cells with the result. Apples should not appear
         on cells that are currently occupied by an agent.
-        :return:
+        :return: nº of apples regenerated
         """
         mask = np.random.binomial(1, self.apple_regen, size=self.apple_cells.shape[0])
         # If an agent is on the cell, we don't want to spawn an apple there
@@ -98,6 +98,7 @@ class Maps:
         # If an apple is already on the cell, we want to keep it there
         final_value = np.logical_or(mask, self.current_state[*self.apple_cells.T] == '@')
         self.current_state[*self.apple_cells.T] = np.where(final_value, '@', ' ')
+        return mask.sum()
 
     def spawn_all_apples(self):
         """

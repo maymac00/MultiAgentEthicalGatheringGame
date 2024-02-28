@@ -1,4 +1,5 @@
 import copy
+import random
 
 import gym
 import numpy as np
@@ -55,16 +56,24 @@ def greedy_agent(grid, agent, env):
     return move
 
 
+n = 8
 preset = copy.copy(large)
 preset["we"] = [1, 99]
-preset["donation_capacity"] = 10
+preset["donation_capacity"] = 0
 preset["max_steps"] = 500
+preset["n_agents"] = n
+# preset["efficiency"] = [1]*n
+# preset["efficiency"] = [5]*n
+# preset["efficiency"] = [15] * n
+preset["efficiency"] = list(range(1, n+1))
+# preset["efficiency"] = [1, 1, 1, 1, 1, 1, 15, 15]
+
+preset["color_by_efficiency"] = True
 env = MAEGG(**preset)
 env.track = True
 env.stash_runs = True
 
 acc_reward = [0] * env.n_agents
-
 
 env.reset()
 for r in range(10):
@@ -72,16 +81,22 @@ for r in range(10):
     acc_reward = [0] * env.n_agents
     for i in range(env.max_steps):
 
-        actions = []
-        for k, ag in enumerate(env.agents.values()):
-            actions.append(greedy_agent(env.map.current_state, ag, env))
-
+        actions_agent = []
+        agents = list(env.agents.values())
+        random.shuffle(agents)
+        untie_prio = np.random.permutation(env.n_agents)
+        for ag, _ in sorted(zip(agents, untie_prio), reverse=True, key=lambda x: (x[0].efficiency, x[1])):
+            actions_agent.append((greedy_agent(env.map.current_state, ag, env), ag.id))
+        actions = [a for a, _ in sorted(actions_agent, key=lambda x: x[1])]
         obs, reward, done, info = env.step(actions)
         acc_reward += reward
         # print(reward)
-        # env.render("partial_observability", pause=2)
-    print(acc_reward)
-    print(info["sim_data"])
+        # env.render()
+
+print("Mean apples geneated: ", np.mean(env.apple_gen_statistic))
+# Print ratio gathered/gather_tries for each agent
+for ag in list(env.agents.values()):
+    print(f"Agent {ag.id} efficiency {ag.efficiency}: obtained {round(ag.gathered/ (ag.gather_tries+1e-10), 2)} of {ag.gather_tries}")
 env.plot_results("median")
 env.get_results()
 env.print_results()
