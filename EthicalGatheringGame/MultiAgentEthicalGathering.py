@@ -537,7 +537,7 @@ class MAEGG(gym.Env):
         if type == "line":
             history_array, event_histogram = self.build_history_array()
             for i in range(1, self.n_agents + 1):
-                plt.plot(history_array[:, i], label="Agent {}".format(i - 1), color=colors[i - 1])
+                plt.plot(history_array[:, i], label="Agent {}".format(i), color=colors[i - 1])
             plt.plot(history_array[:, 0], label="Donation Box", color='green')
             # Plot survival threshold and donation capacity
             plt.plot([0, self.max_steps], [self.survival_threshold, self.survival_threshold],
@@ -560,7 +560,7 @@ class MAEGG(gym.Env):
             iqr = np.percentile(apple_history, 75, axis=0) - np.percentile(apple_history, 25, axis=0)
             seen_groups = set()
             for i in range(1, self.n_agents + 1):
-                label = "Agent {}".format(i - 1)
+                label = "Agent {}".format(i)
                 if self.color_by_efficiency:
                     label = "Group Efficiency {}".format(self.efficiency[i - 1])
                     if label in seen_groups:
@@ -591,7 +591,7 @@ class MAEGG(gym.Env):
             mean = np.mean(apple_history, axis=0)
             std = np.std(apple_history, axis=0)
             for i in range(1, self.n_agents + 1):
-                plt.plot(mean[:, i], label="Agent {}".format(i - 1), color=colors[i - 1])
+                plt.plot(mean[:, i], label="Agent {}".format(i), color=colors[i - 1])
                 plt.fill_between(range(self.max_steps), mean[:, i] - std[:, i], mean[:, i] + std[:, i],
                                  alpha=0.2, color=colors[i - 1])
             plt.plot(mean[:, 0], label="Donation Box", color='green')
