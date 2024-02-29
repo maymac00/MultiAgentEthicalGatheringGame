@@ -11,7 +11,8 @@ import bisect
 import logging
 
 
-# TODO: Check env.Wrapper subclassing to achieve: action space mapping, callbacks, last action memory, etc. This will keep the base env simpler
+# TODO: Check env.Wrapper subclassing to achieve: action space mapping, callbacks, last action memory, etc. This will
+#  keep the base env simpler
 class Agent:
     # Alphabet for agent identification
     alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
@@ -435,7 +436,7 @@ class MAEGG(gym.Env):
             self.map.current_state[*agent.position] = ' '
             agent.gather_tries += 1
             if self.inequality_mode == "loss":
-                if np.random.binomial(agent.efficiency, 1 / self.n_agents) > 0:
+                if np.random.rand() < agent.efficiency:
                     agent.apples += 1
                     agent.gathered += 1
                     events.add("picked_apple")
@@ -547,15 +548,7 @@ class MAEGG(gym.Env):
             plt.legend()
 
         if type == "median":
-
-            if len(self.history) == 0 and len(self.stash) == 0:
-                raise ValueError("No history to plot")
-            if len(self.history) > 0:
-                self.stash.append(self.build_history_array())
-            self.history = []
-
-            # Plot median + IQR
-            apple_history = np.array([s[0] for s in self.stash])
+            apple_history = self.get_results("apple_history")
             median = np.median(apple_history, axis=0)
             iqr = np.percentile(apple_history, 75, axis=0) - np.percentile(apple_history, 25, axis=0)
             seen_groups = set()
@@ -581,13 +574,7 @@ class MAEGG(gym.Env):
             plt.legend()
 
         if type == "mean":
-
-            if len(self.history) > 0:
-                self.stash.append(self.build_history_array())
-            self.history = []
-
-            # Plot mean + std
-            apple_history = np.array([s[0] for s in self.stash])
+            apple_history = self.get_results("apple_history")
             mean = np.mean(apple_history, axis=0)
             std = np.std(apple_history, axis=0)
             for i in range(1, self.n_agents + 1):
@@ -626,6 +613,27 @@ class MAEGG(gym.Env):
         for i in range(self.n_agents):
             print(f"{i}     | {' | '.join([str(c).ljust(13) for c in histogram[i]])}")
 
+        # Get apple history
+        apple_history = self.get_results("apple_history")
+        final_agent_apples = apple_history[:, -1, 1:]
+        def gini(arr):
+            total_apples_sim = arr.sum(axis=1)
+            proportion = arr / total_apples_sim[:, np.newaxis]
+            gini = 1 - (proportion ** 2).sum(axis=1)
+            return gini
+        # Get gini ratio of final number of apples
+        global_gini = gini(final_agent_apples)
+        # Pretty print gini ratio
+        print(f"Gini ratio: {global_gini.mean():.3f} +/- {global_gini.std():.3f}")
+
+        # Gini gain ratio
+        ugly_print = []
+        for i in range(self.n_agents):
+            gini_gain = global_gini - ((self.n_agents-1)/self.n_agents) * gini(np.concatenate([final_agent_apples[:, :i], final_agent_apples[:, i+1:]], axis=1))
+            ugly_print.append(gini_gain)
+            print(f"Agent {i} gini gain: {gini_gain.mean():.3f} +/- {gini_gain.std():.3f}")
+        print(",".join([f"{g.mean():.3f}" for g in ugly_print]))
+
     def get_results(self, type="histogram"):
         if type == "histogram":
             if len(self.history) > 0:
@@ -653,6 +661,16 @@ class MAEGG(gym.Env):
             counter = np.round(counter, 2)
 
             return all_tags, counter
+
+        if type == "apple_history":
+            if len(self.history) == 0 and len(self.stash) == 0:
+                raise ValueError("No history to retrieve")
+            if len(self.history) > 0:
+                self.stash.append(self.build_history_array())
+            self.history = []
+
+            apple_history = np.array([s[0] for s in self.stash])
+            return apple_history
 
     def setTrack(self, track):
         self.track = track

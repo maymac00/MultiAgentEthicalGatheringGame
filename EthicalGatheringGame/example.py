@@ -62,11 +62,11 @@ preset["we"] = [1, 99]
 preset["donation_capacity"] = 0
 preset["max_steps"] = 500
 preset["n_agents"] = n
-# preset["efficiency"] = [1]*n
-# preset["efficiency"] = [5]*n
-# preset["efficiency"] = [15] * n
-preset["efficiency"] = list(range(1, n+1))
-# preset["efficiency"] = [1, 1, 1, 1, 1, 1, 15, 15]
+# preset["efficiency"] = [0.1] * n
+preset["efficiency"] = [0.5] * n
+# preset["efficiency"] = [0.85] * n
+# preset["efficiency"] = list(range(1, n+1))/n
+# preset["efficiency"] = [0.1]*6 + [0.85]*2
 
 preset["color_by_efficiency"] = True
 env = MAEGG(**preset)
@@ -76,11 +76,10 @@ env.stash_runs = True
 acc_reward = [0] * env.n_agents
 
 env.reset()
-for r in range(10):
+for r in range(100):
     obs, _ = env.reset()
     acc_reward = [0] * env.n_agents
     for i in range(env.max_steps):
-
         actions_agent = []
         agents = list(env.agents.values())
         random.shuffle(agents)

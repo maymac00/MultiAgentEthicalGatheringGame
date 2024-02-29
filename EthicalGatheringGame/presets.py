@@ -33,7 +33,7 @@ medium = {
     "visual_radius": 4,
     "partial_observability": 1,
     "init_state": "empty",
-    "efficiency": [1.0, 1.0, 5.0]
+    "efficiency": [0.2, 0.2, 0.67]
 }
 large = {
     "n_agents": 5,
@@ -46,5 +46,5 @@ large = {
     "visual_radius": 4,
     "partial_observability": 1,
     "init_state": "empty",
-    "efficiency": [1.0, 1.0, 5.0, 1.0, 5.0]
+    "efficiency": [0.2, 0.2, 0.67, 0.2, 0.67]
 }
