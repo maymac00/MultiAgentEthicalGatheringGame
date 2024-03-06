@@ -616,23 +616,18 @@ class MAEGG(gym.Env):
         # Get apple history
         apple_history = self.get_results("apple_history")
         final_agent_apples = apple_history[:, -1, 1:]
+
         def gini(arr):
             total_apples_sim = arr.sum(axis=1)
             proportion = arr / total_apples_sim[:, np.newaxis]
             gini = 1 - (proportion ** 2).sum(axis=1)
             return gini
+
         # Get gini ratio of final number of apples
         global_gini = gini(final_agent_apples)
         # Pretty print gini ratio
         print(f"Gini ratio: {global_gini.mean():.3f} +/- {global_gini.std():.3f}")
 
-        # Gini gain ratio
-        ugly_print = []
-        for i in range(self.n_agents):
-            gini_gain = global_gini - ((self.n_agents-1)/self.n_agents) * gini(np.concatenate([final_agent_apples[:, :i], final_agent_apples[:, i+1:]], axis=1))
-            ugly_print.append(gini_gain)
-            print(f"Agent {i} gini gain: {gini_gain.mean():.3f} +/- {gini_gain.std():.3f}")
-        print(",".join([f"{g.mean():.3f}" for g in ugly_print]))
 
     def get_results(self, type="histogram"):
         if type == "histogram":
