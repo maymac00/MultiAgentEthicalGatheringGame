@@ -260,7 +260,10 @@ class MAEGG(gym.Env):
         :param action:
         :return: nObservations, reward, done, info
         """
-        info = {}
+        info = {
+            "R'_N": [0] * self.n_agents,
+            "R'_E": [0] * self.n_agents,
+        }
 
         self.steps += 1
         done = self.steps >= self.max_steps
@@ -268,12 +271,14 @@ class MAEGG(gym.Env):
         reward = np.zeros((self.n_agents, 2))
 
         untie_prio = np.random.permutation(self.n_agents)
-        sorted_pairs = sorted(zip(self.agents.values(), action, untie_prio), reverse=True,
+        sorted_pairs = sorted(zip(self.agents.values(), action, untie_prio, list(range(self.n_agents))), reverse=True,
                               key=lambda x: (x[0].efficiency, x[2]))
-        sorted_agents, action, _ = map(list, zip(*sorted_pairs))
+        sorted_agents, action, _, idx = map(list, zip(*sorted_pairs))
         for i in range(self.n_agents):
             events = self.get_action_events(sorted_agents[i], action[i])
             info[sorted_agents[i].id] = {"events": events, "apples": sorted_agents[i].apples}
+            if 'did_not_donate' in events:
+                info["R'_E"][idx[i]] += 1
             if 'donated' in events:
                 reward[i, 1] += 0.7
                 reward[i, 0] -= 1
@@ -282,6 +287,7 @@ class MAEGG(gym.Env):
 
             if 'greedy' in events:
                 reward[i, 1] += -1.0
+                info["R'_N"][idx[i]] += 1
             if 'hungry' in events:
                 reward[i, 0] += -1.0
             if 'picked_apple' in events:
@@ -428,6 +434,10 @@ class MAEGG(gym.Env):
         """
         events = set()
         move_vec = MAEGG.MOVE_VECTORS[action]
+        # Could have donated
+        if action != MAEGG.DONATE and agent.apples > self.survival_threshold and self.donation_box < self.donation_capacity:
+            events.add("did_not_donate")
+
         if self.map.check_valid_position(agent.position + move_vec):
             agent.position += move_vec
             events.add("moved")
@@ -627,7 +637,6 @@ class MAEGG(gym.Env):
         global_gini = gini(final_agent_apples)
         # Pretty print gini ratio
         print(f"Gini ratio: {global_gini.mean():.3f} +/- {global_gini.std():.3f}")
-
 
     def get_results(self, type="histogram"):
         if type == "histogram":
