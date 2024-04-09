@@ -549,7 +549,10 @@ class MAEGG(gym.Env):
             plt.legend()
 
         if type == "line":
-            history_array, event_histogram = self.build_history_array()
+            if len(self.history) == 0:
+                history_array, event_histogram = self.stash[-1]
+            else:
+                history_array, event_histogram = self.build_history_array()
             for i in range(1, self.n_agents + 1):
                 plt.plot(history_array[:, i], label="Agent {}".format(i), color=colors[i - 1])
             plt.plot(history_array[:, 0], label="Donation Box", color='green')
