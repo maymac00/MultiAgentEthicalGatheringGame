@@ -679,8 +679,11 @@ class MAEGG(gym.Env):
     def setTrack(self, track):
         self.track = track
 
-    def setStash(self, stash_runs):
+    def toggleStash(self, stash_runs):
         self.stash_runs = stash_runs
+
+    def setStash(self, stash):
+        self.stash = stash
 
     def resetStash(self):
         self.stash = []
