@@ -677,6 +677,8 @@ class MAEGG(gym.Env):
             self.history = []
 
             apple_history = np.array([s[0] for s in self.stash])
+            if apple_history.shape[0] == 0:
+                raise ValueError("No history to retrieve")
             return apple_history
 
     def toggleTrack(self, track):

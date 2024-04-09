@@ -77,7 +77,7 @@ env.stash_runs = True
 acc_reward = [0] * env.n_agents
 
 env.reset()
-for r in range(20):
+for r in range(3):
     obs, _ = env.reset()
     acc_reward = [0] * env.n_agents
     for i in range(env.max_steps):
@@ -98,6 +98,9 @@ print("Mean apples geneated: ", np.mean(env.apple_gen_statistic))
 for ag in list(env.agents.values()):
     print(
         f"Agent {ag.id} efficiency {ag.efficiency}: obtained {round(ag.gathered / (ag.gather_tries + 1e-10), 2)} of {ag.gather_tries}")
+
+h = copy.deepcopy(env.history)
+env.setHistory(h)
 env.plot_results("median")
 env.get_results()
 env.print_results()
