@@ -59,14 +59,15 @@ def greedy_agent(grid, agent, env):
 n = 8
 preset = copy.copy(large)
 preset["we"] = [1, 99]
-preset["donation_capacity"] = 0
+preset["donation_capacity"] = 100
 preset["max_steps"] = 500
 preset["n_agents"] = n
-# preset["efficiency"] = [0.1] * n
-preset["efficiency"] = [0.5] * n
-# preset["efficiency"] = [0.85] * n
-# preset["efficiency"] = list(range(1, n+1))/n
-# preset["efficiency"] = [0.1]*6 + [0.85]*2
+# preset["efficiency"] = [0.1] * n # Equally low efficiency
+preset["efficiency"] = [0.5] * n  # Equally medium efficiency
+# preset["efficiency"] = [0.85] * n  # Equally high efficiency
+# preset["efficiency"] = [i/n for i in range(n)]  # Range efficiency
+# preset["efficiency"] = [0.85]*2 + [0.1]*6  # 2 high vs 6 low
+# preset["efficiency"] = [0.85]*1 + [0.50]*1 + [0.1]*6  # 1 high vs 1 med vs 1 high
 
 preset["color_by_efficiency"] = True
 env = MAEGG(**preset)
@@ -76,7 +77,7 @@ env.stash_runs = True
 acc_reward = [0] * env.n_agents
 
 env.reset()
-for r in range(100):
+for r in range(20):
     obs, _ = env.reset()
     acc_reward = [0] * env.n_agents
     for i in range(env.max_steps):
@@ -95,7 +96,8 @@ for r in range(100):
 print("Mean apples geneated: ", np.mean(env.apple_gen_statistic))
 # Print ratio gathered/gather_tries for each agent
 for ag in list(env.agents.values()):
-    print(f"Agent {ag.id} efficiency {ag.efficiency}: obtained {round(ag.gathered/ (ag.gather_tries+1e-10), 2)} of {ag.gather_tries}")
+    print(
+        f"Agent {ag.id} efficiency {ag.efficiency}: obtained {round(ag.gathered / (ag.gather_tries + 1e-10), 2)} of {ag.gather_tries}")
 env.plot_results("median")
 env.get_results()
 env.print_results()
