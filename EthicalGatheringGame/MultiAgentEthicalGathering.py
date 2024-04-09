@@ -486,7 +486,7 @@ class MAEGG(gym.Env):
         from collections import Counter
         from itertools import chain
 
-        if len(self.history) == 0:
+        if len(self.history) == 0 and h is None:
             raise ValueError("No history to retrieve")
         history_array = np.zeros((self.max_steps, self.n_agents + 1))
         event_histogram = [[] for _ in range(self.n_agents)]
