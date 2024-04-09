@@ -679,7 +679,7 @@ class MAEGG(gym.Env):
             apple_history = np.array([s[0] for s in self.stash])
             return apple_history
 
-    def setTrack(self, track):
+    def toggleTrack(self, track):
         self.track = track
 
     def toggleStash(self, stash_runs):
@@ -687,6 +687,13 @@ class MAEGG(gym.Env):
 
     def setStash(self, stash):
         self.stash = stash
+
+    def setHistory(self, history):
+        if type(history) == list:
+            self.history = history
+        else:
+            self.history = [history]
+
 
     def resetStash(self):
         self.stash = []
