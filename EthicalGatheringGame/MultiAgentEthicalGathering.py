@@ -667,7 +667,7 @@ class MAEGG(gym.Env):
             return all_tags, counter
 
         if type == "apple_history":
-            if len(self.history) == 0 or len(self.stash) == 0:
+            if not (len(self.history) == 0 or len(self.stash) == 0):
                 raise ValueError("No history to retrieve")
             if len(self.history) > 0:
                 self.stash.append(self.build_history_array())
