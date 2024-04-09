@@ -486,8 +486,14 @@ class MAEGG(gym.Env):
         from collections import Counter
         from itertools import chain
 
+        if len(self.history) == 0 and h is None:
+            if len(self.stash) > 0:
+                h = self.stash[-1]
+            else:
+                raise ValueError("No history to build array from")
         history_array = np.zeros((self.max_steps, self.n_agents + 1))
         event_histogram = [[] for _ in range(self.n_agents)]
+
         for i, step in enumerate(self.history if h is None else h):
             history_array[i, 0] = step['donation_box']
             for j, ag in enumerate(self.agents.values()):
