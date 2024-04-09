@@ -694,7 +694,6 @@ class MAEGG(gym.Env):
         else:
             self.history = [history]
 
-
     def resetStash(self):
         self.stash = []
         self.history = []
