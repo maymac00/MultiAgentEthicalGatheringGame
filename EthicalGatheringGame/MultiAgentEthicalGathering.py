@@ -501,7 +501,7 @@ class MAEGG(gym.Env):
 
         return history_array, event_histogram
 
-    def plot_results(self, type="histogram"):
+    def plot_results(self, type="histogram", save_path=None):
         """
         Plots the results of the environment. It plots the history of the donation box and the number of apples for each
         agent in each step, or a histogram with the events that happened to each agent.
@@ -615,6 +615,10 @@ class MAEGG(gym.Env):
 
             # Plot blurr
             raise NotImplementedError("Blurr plot not implemented yet")
+
+        if save_path is not None:
+            plt.savefig(save_path)
+
         plt.show()
 
     def print_results(self):
