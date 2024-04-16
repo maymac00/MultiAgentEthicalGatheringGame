@@ -1,5 +1,5 @@
 import numpy as np
-
+import copy
 
 class Maps:
     sketches = {
@@ -44,7 +44,7 @@ class Maps:
         self.apple_regen = Maps.apple_regen[sketch]
         self.init_state = init_state
 
-        self.current_state = Maps.sketches[self.sketch]
+        self.current_state = copy.deepcopy(Maps.sketches[self.sketch])
         self.apple_cells = np.array(np.where(self.current_state == '@')).T
         self.spawn_able_cells = np.where(self.current_state == ' ')
 
