@@ -71,6 +71,8 @@ class MAEGG(gym.Env):
     MOVE_VECTORS = {MOVE_UP: (-1, 0), MOVE_DOWN: (1, 0), MOVE_LEFT: (0, -1), MOVE_RIGHT: (0, 1), STAY: (0, 0),
                     DONATE: (0, 0), TAKE_DONATION: (0, 0)}
 
+    log_level = logging.DEBUG
+
     @staticmethod
     def read_params_from_json(json_path):
         """
@@ -97,7 +99,7 @@ class MAEGG(gym.Env):
 
         # Logging
         self.logger = logging.getLogger(self.__class__.__name__)
-        self.logger.setLevel(logging.DEBUG)
+        self.logger.setLevel(MAEGG.log_level)
         if not self.logger.hasHandlers():
             ch = logging.StreamHandler()
             ch.setLevel(logging.DEBUG)
@@ -155,13 +157,13 @@ class MAEGG(gym.Env):
                                                     dtype=np.float32)
 
         # Log relevant info
-        self.logger.info("Environment initialized with parameters:")
-        self.logger.info("n_agents: {}".format(self.n_agents))
-        self.logger.info("map_size: {}".format(self.map_size))
-        self.logger.info("inequality_mode: {}".format(self.inequality_mode))
-        self.logger.info("donation_capacity: {}".format(self.donation_capacity))
-        self.logger.info("survival_threshold: {}".format(self.survival_threshold))
-        self.logger.info("Weights: {}".format(self.we))
+        self.logger.debug("Environment initialized with parameters:")
+        self.logger.debug("n_agents: {}".format(self.n_agents))
+        self.logger.debug("map_size: {}".format(self.map_size))
+        self.logger.debug("inequality_mode: {}".format(self.inequality_mode))
+        self.logger.debug("donation_capacity: {}".format(self.donation_capacity))
+        self.logger.debug("survival_threshold: {}".format(self.survival_threshold))
+        self.logger.debug("Weights: {}".format(self.we))
 
     def getObservation(self):
         """
