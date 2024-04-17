@@ -135,6 +135,7 @@ class MAEGG(gym.Env):
             "donation_box_full": -1,
             "all_survived": -1,
             "all_done": -1,
+            "time_to_survival": [-1] * self.n_agents,
         }
 
         # Track history
@@ -305,6 +306,11 @@ class MAEGG(gym.Env):
         if self.sim_data["donation_box_full"] == -1 and self.donation_box == self.donation_capacity:
             self.sim_data["donation_box_full"] = self.steps
 
+        # Time to survival
+        for i, ag in enumerate(self.agents.values()):
+            if self.sim_data["time_to_survival"][i] == -1 and ag.apples >= self.survival_threshold:
+                self.sim_data["time_to_survival"][i] = self.steps
+
         if self.sim_data["all_survived"] == -1 and all(
                 [ag.apples >= self.survival_threshold for ag in self.agents.values()]):
             self.sim_data["all_survived"] = self.steps
@@ -338,6 +344,7 @@ class MAEGG(gym.Env):
             "donation_box_full": -1,
             "all_survived": -1,
             "all_done": -1,
+            "time_to_survival": [-1] * self.n_agents,
         }
 
         self.donation_box = 0
