@@ -679,6 +679,8 @@ class MAEGG(gym.Env):
             all_tags.discard('not hungry')
             all_tags.discard('moved')
 
+            all_tags = sorted(list(all_tags))
+
             counter = np.zeros((self.n_agents, len(all_tags)), dtype=np.float32)
             for h in event_histogram:
                 for i in range(self.n_agents):
