@@ -658,6 +658,7 @@ class MAEGG(gym.Env):
         global_gini = gini(final_agent_apples)
         # Pretty print gini ratio
         print(f"Gini ratio: {global_gini.mean():.3f} +/- {global_gini.std():.3f}")
+        return header, histogram
 
     def get_results(self, type="histogram"):
         if type == "histogram":
