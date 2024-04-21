@@ -56,7 +56,7 @@ def greedy_agent(grid, agent, env):
     return move
 
 
-n = 8
+n = 5
 preset = copy.copy(large)
 preset["we"] = [1, 99]
 preset["donation_capacity"] = 100
@@ -64,10 +64,7 @@ preset["max_steps"] = 500
 preset["n_agents"] = n
 # preset["efficiency"] = [0.1] * n # Equally low efficiency
 preset["efficiency"] = [0.5] * n  # Equally medium efficiency
-# preset["efficiency"] = [0.85] * n  # Equally high efficiency
-# preset["efficiency"] = [i/n for i in range(n)]  # Range efficiency
-# preset["efficiency"] = [0.85]*2 + [0.1]*6  # 2 high vs 6 low
-# preset["efficiency"] = [0.85]*1 + [0.50]*1 + [0.1]*6  # 1 high vs 1 med vs 1 high
+# preset["reward_mode"] = "vectorial"
 
 preset["color_by_efficiency"] = True
 env = MAEGG(**preset)
@@ -101,7 +98,7 @@ for ag in list(env.agents.values()):
 
 h = copy.deepcopy(env.history)
 env.setHistory(h)
-env.plot_results("median")
+# env.plot_results("median")
 env.get_results()
 env.print_results()
 pass
