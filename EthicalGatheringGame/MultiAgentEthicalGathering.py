@@ -301,6 +301,8 @@ class MAEGG(gym.Env):
                 sorted_agents[i].r = np.dot(reward[i], self.we)
             elif self.reward_mode == "vectorial":
                 sorted_agents[i].r = reward[i]
+            else:
+                raise ValueError("Reward mode not recognised")
 
             sorted_agents[i].r_vec += reward[i]
 
