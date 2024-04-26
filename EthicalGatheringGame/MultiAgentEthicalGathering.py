@@ -580,7 +580,8 @@ class MAEGG(gym.Env):
             for i in range(1, self.n_agents + 1):
                 label = "Agent {}".format(i)
                 if self.color_by_efficiency:
-                    label = "Group Efficiency {}".format(self.efficiency[i - 1])
+                    level = "High" if self.efficiency[i - 1] > 0.5 else "Low"
+                    label = "{} Efficiency Group".format(level)
                     if label in seen_groups:
                         label = "_nolegend_"  # Don't add the same label twice
                     else:
