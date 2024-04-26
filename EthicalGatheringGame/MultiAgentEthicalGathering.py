@@ -92,7 +92,7 @@ class MAEGG(gym.Env):
 
     def __init__(self, n_agents, map_size, we: np.ndarray, inequality_mode, max_steps, donation_capacity,
                  survival_threshold, visual_radius, partial_observability, init_state="empty", track_history=False,
-                 efficiency: np.ndarray = None, color_by_efficiency=False):
+                 efficiency: np.ndarray = None, color_by_efficiency=False, reward_mode="scalarised"):
         super(MAEGG, self).__init__()
         Agent.idx = 0
         Agent.group_id = {}
@@ -119,6 +119,7 @@ class MAEGG(gym.Env):
         self.partial_observability = partial_observability
         self.color_by_efficiency = color_by_efficiency
         self.init_state = init_state
+        self.reward_mode = reward_mode
 
         # Variables
         self.map = Maps(sketch=self.map_size, init_state=init_state)
@@ -296,7 +297,13 @@ class MAEGG(gym.Env):
             if 'picked_apple' in events:
                 reward[i, 0] += 1.0
 
-            sorted_agents[i].r = np.dot(reward[i], self.we)
+            if self.reward_mode == "scalarised":
+                sorted_agents[i].r = np.dot(reward[i], self.we)
+            elif self.reward_mode == "vectorial":
+                sorted_agents[i].r = reward[i]
+            else:
+                raise ValueError("Reward mode not recognised")
+
             sorted_agents[i].r_vec += reward[i]
 
         generated_apples = self.map.regen_apples(self.agents.values())
@@ -659,6 +666,7 @@ class MAEGG(gym.Env):
         global_gini = gini(final_agent_apples)
         # Pretty print gini ratio
         print(f"Gini ratio: {global_gini.mean():.3f} +/- {global_gini.std():.3f}")
+        return header, histogram
 
     def get_results(self, type="histogram"):
         if type == "histogram":
@@ -678,6 +686,8 @@ class MAEGG(gym.Env):
             # Remove irrelevant events from the histogram and register all tags
             all_tags.discard('not hungry')
             all_tags.discard('moved')
+
+            all_tags = sorted(list(all_tags))
 
             counter = np.zeros((self.n_agents, len(all_tags)), dtype=np.float32)
             for h in event_histogram:
