@@ -584,6 +584,8 @@ class MAEGG(gym.Env):
             median = np.median(apple_history, axis=0)
             iqr = np.percentile(apple_history, 75, axis=0) - np.percentile(apple_history, 25, axis=0)
             seen_groups = set()
+            # Set y axis limits
+            plt.ylim(0, 65)
             for i in range(1, self.n_agents + 1):
                 label = "Agent {}".format(i)
                 if self.color_by_efficiency:
