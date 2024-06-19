@@ -25,7 +25,9 @@ class Agent:
         self.id = Agent.alphabet[Agent.idx]
 
         self.r = 0
+        self.acc_r = 0
         self.r_vec = np.zeros(2)
+        self.acc_r_vec = np.zeros(2)
 
         self.apples = 0
         self.gather_tries = 0
@@ -47,6 +49,8 @@ class Agent:
         self.gathered = 0
         self.r = 0
         self.r_vec = np.zeros(2)
+        self.acc_r = 0
+        self.acc_r_vec = np.zeros(2)
 
     def __gt__(self, other):
         return self.efficiency > other.efficiency
