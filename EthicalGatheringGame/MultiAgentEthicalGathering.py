@@ -154,6 +154,12 @@ class MAEGG(gym.Env):
 
         # Env Setup
         self.action_space = gym.spaces.Discrete(7)
+
+        if self.reward_mode == "vectorial":
+            self.reward_space = gym.spaces.Box(low=-1, high=1, shape=(2,), dtype=np.float32)
+        elif self.reward_mode == "scalarised":
+            self.reward_space = gym.spaces.Box(low=-1, high=1, shape=(1,), dtype=np.float32)
+
         if self.partial_observability:
             self.observation_space = gym.spaces.Box(low=0, high=1,
                                                     shape=((self.visual_radius * 2 + 1) ** 2 + 2,),
