@@ -311,8 +311,9 @@ class MAEGG(gym.Env):
                 sorted_agents[i].r = reward[i]
             else:
                 raise ValueError("Reward mode not recognised")
-
-            sorted_agents[i].r_vec += reward[i]
+            sorted_agents[i].r_vec = reward[i]
+            sorted_agents[i].acc_r += sorted_agents[i].r
+            sorted_agents[i].acc_r_vec += reward[i]
 
         generated_apples = self.map.regen_apples(self.agents.values())
         self.gen_apples += generated_apples
