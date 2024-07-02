@@ -96,7 +96,7 @@ class MAEGG(gym.Env):
 
     def __init__(self, n_agents, map_size, we: np.ndarray, inequality_mode, max_steps, donation_capacity,
                  survival_threshold, visual_radius, partial_observability, init_state="empty", track_history=False,
-                 efficiency: np.ndarray = None, color_by_efficiency=False, reward_mode="scalarised"):
+                 efficiency: np.ndarray = None, color_by_efficiency=False, reward_mode="scalarised", objective_order="ethical_first"):
         super(MAEGG, self).__init__()
         Agent.idx = 0
         Agent.group_id = {}
@@ -124,6 +124,7 @@ class MAEGG(gym.Env):
         self.color_by_efficiency = color_by_efficiency
         self.init_state = init_state
         self.reward_mode = reward_mode
+        self.obejctive_order = objective_order
 
         # Variables
         self.map = Maps(sketch=self.map_size, init_state=init_state)
@@ -300,6 +301,9 @@ class MAEGG(gym.Env):
                 reward[i, 0] += -1.0
             if 'picked_apple' in events:
                 reward[i, 0] += 1.0
+
+            if self.obejctive_order == "ethical_first":
+                reward = np.vstack([reward[:, 1], reward[:, 0]]).T
 
             if self.reward_mode == "scalarised":
                 sorted_agents[i].r = np.dot(reward[i], self.we)
