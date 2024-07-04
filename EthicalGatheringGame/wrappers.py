@@ -52,6 +52,9 @@ class NormalizeReward(gym.core.Wrapper):
         env.logger.info("Normalize reward wrapper initialized")
         env.logger.info(f"Gamma: {gamma}")
 
+        if env.reward_mode == "vectorial":
+            raise ValueError("Vectorial rewards are not supported.")
+
     def step(self, action):
         obs, rews, dones, infos = self.env.step(action)
         if self.active:
