@@ -1,4 +1,8 @@
+from typing import Tuple
+
+from gym.core import ActType, ObsType
 from gym.wrappers.normalize import RunningMeanStd
+from prettytable import PrettyTable
 
 from EthicalGatheringGame.MultiAgentEthicalGathering import MAEGG
 from EthicalGatheringGame.presets import tiny, small, medium, large
@@ -66,6 +70,64 @@ class NormalizeReward(gym.core.Wrapper):
     def normalize(self, rews):
         self.return_rms.update(self.returns)
         return rews / np.sqrt(self.return_rms.var + self.epsilon)
+
+
+class StatTracker(gym.core.Wrapper):
+    """
+    This class tracks the running mean and std of the main statistics of the agents. Includes:
+    - Number of apples gathered
+    - Number of apples dropped
+    - Number of apples taken from the box
+    - Time to survival
+    - Apples generated on the map
+    """
+
+    def __init__(self, env):
+        super().__init__(env)
+        self.env = env
+        self.apples_gathered = [RunningMeanStd(shape=()) for _ in range(env.n_agents)]
+        self.apples_dropped = [RunningMeanStd(shape=()) for _ in range(env.n_agents)]
+        self.apples_from_box = [RunningMeanStd(shape=()) for _ in range(env.n_agents)]
+        self.apples_generated = RunningMeanStd(shape=())
+
+    def step(self, action):
+        obs, rews, dones, info = self.env.step(action)
+        if all(dones):
+            for i, agent in self.env.agents.items():
+                self.apples_gathered[i].update(np.expand_dims(np.array(agent.gathered), axis=0))
+                self.apples_dropped[i].update(np.expand_dims(np.array(agent.apples_dropped), axis=0))
+                self.apples_from_box[i].update(np.expand_dims(np.array(agent.apples_from_box), axis=0))
+            self.apples_generated.update(np.expand_dims([info["sim_data"]["generated_apples"]], axis=0))
+        return obs, rews, dones, info
+
+    def print_results(self):
+        header, histogram = self.env.print_results()
+        # Plot as fancy table with
+        table = PrettyTable()
+
+        title = "Agent statistics"
+        print("=" * len(title))
+        print(title)
+        print("=" * len(title))
+
+        print("Mean + std of apples generated on the map: ", self.apples_generated.mean, "+-", self.apples_generated.var)
+
+        table.field_names = ["Agent", "Apples Stepped", "Apples Stepped Ratio", "Apples gathered", "Apples dropped",
+                             "Apples from box"]
+
+        # Round values to 2 decimal points
+        for i, agent in self.env.agents.items():
+            self.apples_gathered[i].mean = round(self.apples_gathered[i].mean, 2)
+            self.apples_dropped[i].mean = round(self.apples_dropped[i].mean, 2)
+            self.apples_from_box[i].mean = round(self.apples_from_box[i].mean, 2)
+
+        for i in range(self.env.n_agents):
+            table.add_row([i, self.apples_gathered[i].mean + self.apples_dropped[i].mean,
+                           ((self.apples_gathered[i].mean + self.apples_dropped[i].mean) / self.apples_generated.mean)[
+                               0], self.apples_gathered[i].mean, self.apples_dropped[i].mean,
+                           self.apples_from_box[i].mean])
+
+        print(table)
 
 
 if __name__ == "__main__":

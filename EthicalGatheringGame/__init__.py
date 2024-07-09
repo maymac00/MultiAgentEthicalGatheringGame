@@ -8,5 +8,6 @@ import EthicalGatheringGame.presets as presets
 # Register the environment
 register(
     id='MultiAgentEthicalGathering-v1',
-    entry_point='EthicalGatheringGame.MultiAgentEthicalGathering:MAEGG')
+    entry_point='EthicalGatheringGame.MultiAgentEthicalGathering:MAEGG'
+)
 

@@ -9,6 +9,7 @@ import json
 from EthicalGatheringGame.Maps import Maps
 import bisect
 import logging
+import prettytable
 
 
 # TODO: Check env.Wrapper subclassing to achieve: action space mapping, callbacks, last action memory, etc. This will
@@ -30,8 +31,9 @@ class Agent:
         self.acc_r_vec = np.zeros(2)
 
         self.apples = 0
-        self.gather_tries = 0
+        self.apples_dropped = 0  # Dropped apples counter for loss inequality mode
         self.gathered = 0
+        self.apples_from_box = 0
         if color_by_efficiency:
             if efficiency not in Agent.group_id:
                 Agent.group_id[efficiency] = Agent.colors[len(Agent.group_id.keys())]
@@ -45,8 +47,9 @@ class Agent:
     def reset(self, position):
         self.position = np.array(position)
         self.apples = 0
-        self.gather_tries = 0
+        self.apples_dropped = 0
         self.gathered = 0
+        self.apples_from_box = 0
         self.r = 0
         self.r_vec = np.zeros(2)
         self.acc_r = 0
@@ -96,7 +99,8 @@ class MAEGG(gym.Env):
 
     def __init__(self, n_agents, map_size, we: np.ndarray, inequality_mode, max_steps, donation_capacity,
                  survival_threshold, visual_radius, partial_observability, init_state="empty", track_history=False,
-                 efficiency: np.ndarray = None, color_by_efficiency=False, reward_mode="scalarised", objective_order="ethical_first"):
+                 efficiency: np.ndarray = None, color_by_efficiency=False, reward_mode="scalarised",
+                 objective_order="ethical_first"):
         super(MAEGG, self).__init__()
         Agent.idx = 0
         Agent.group_id = {}
@@ -142,6 +146,7 @@ class MAEGG(gym.Env):
             "all_survived": -1,
             "all_done": -1,
             "time_to_survival": [-1] * self.n_agents,
+            "generated_apples": 0,
         }
 
         # Track history
@@ -149,8 +154,6 @@ class MAEGG(gym.Env):
         self.history = []
         self.stash_runs = True
         self.stash = []
-        self.gen_apples = 0  # Generated apples
-        self.apple_gen_statistic = deque(maxlen=100)
 
         # Env Setup
         self.action_space = gym.spaces.Discrete(7)
@@ -321,8 +324,7 @@ class MAEGG(gym.Env):
             sorted_agents[i].acc_r += sorted_agents[i].r
             sorted_agents[i].acc_r_vec += reward[i]
 
-        generated_apples = self.map.regen_apples(self.agents.values())
-        self.gen_apples += generated_apples
+        self.sim_data["generated_apples"] += self.map.regen_apples(self.agents.values())
         nObservations = self.getObservation()
 
         if self.sim_data["donation_box_full"] == -1 and self.donation_box == self.donation_capacity:
@@ -367,6 +369,7 @@ class MAEGG(gym.Env):
             "all_survived": -1,
             "all_done": -1,
             "time_to_survival": [-1] * self.n_agents,
+            "generated_apples": 0,
         }
 
         self.donation_box = 0
@@ -375,7 +378,6 @@ class MAEGG(gym.Env):
         if self.track and self.stash_runs and len(self.history) > 0:
             self.stash.append(self.build_history_array())
         self.history = []
-        self.apple_gen_statistic.append(self.gen_apples)
         self.gen_apples = 0
         return (self.getObservation(), {
             "donation_box": self.donation_box,
@@ -475,12 +477,13 @@ class MAEGG(gym.Env):
         # Did agent step on apple?
         if self.map.current_state[*agent.position] == '@':
             self.map.current_state[*agent.position] = ' '
-            agent.gather_tries += 1
             if self.inequality_mode == "loss":
                 if np.random.rand() < agent.efficiency:
                     agent.apples += 1
                     agent.gathered += 1
                     events.add("picked_apple")
+                else:
+                    agent.apples_dropped += 1
             else:
                 agent.apples += 1
                 agent.gathered += 1
@@ -491,6 +494,7 @@ class MAEGG(gym.Env):
                 events.add("greedy")
             if self.donation_box > 0:
                 agent.apples += 1
+                agent.apples_from_box += 1
                 self.donation_box -= 1
                 events.add("took_donation")
 
@@ -659,30 +663,23 @@ class MAEGG(gym.Env):
 
     def print_results(self):
         """
-
         :return:
         """
         header, histogram = self.get_results("histogram")
+
         # Pretty print histogram for each agent in different columns
-        print(f"Agent | {' | '.join([tag.ljust(13) for tag in header])}")
-        print("-" * (15 + 15 * len(histogram[0])))
+        table = prettytable.PrettyTable()
+        table.field_names = ["Agent"] + header
+
         for i in range(self.n_agents):
-            print(f"{i}     | {' | '.join([str(c).ljust(13) for c in histogram[i]])}")
+            table.add_row([i] + [c for c in histogram[i]])
 
-        # Get apple history
-        apple_history = self.get_results("apple_history")
-        final_agent_apples = apple_history[:, -1, 1:]
+        title = "Average Event Histogram"
+        print("=" * len(title))
+        print(title)
+        print("=" * len(title))
 
-        def gini(arr):
-            total_apples_sim = arr.sum(axis=1)
-            proportion = arr / total_apples_sim[:, np.newaxis]
-            gini = 1 - (proportion ** 2).sum(axis=1)
-            return gini
-
-        # Get gini ratio of final number of apples
-        global_gini = gini(final_agent_apples)
-        # Pretty print gini ratio
-        print(f"Gini ratio: {global_gini.mean():.3f} +/- {global_gini.std():.3f}")
+        print(table)
         return header, histogram
 
     def get_results(self, type="histogram"):

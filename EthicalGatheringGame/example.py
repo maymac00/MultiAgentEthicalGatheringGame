@@ -9,7 +9,7 @@ matplotlib.use('TkAgg')
 from matplotlib import pyplot as plt
 from EthicalGatheringGame import MAEGG
 from EthicalGatheringGame.presets import tiny, small, medium, large
-from EthicalGatheringGame.wrappers import NormalizeReward
+from EthicalGatheringGame.wrappers import NormalizeReward, StatTracker
 
 
 def greedy_agent(grid, agent, env):
@@ -63,18 +63,21 @@ preset["donation_capacity"] = 100
 preset["max_steps"] = 500
 preset["n_agents"] = n
 # preset["efficiency"] = [0.1] * n # Equally low efficiency
-preset["efficiency"] = [0.5] * n  # Equally medium efficiency
+# preset["efficiency"] = [0.5] * n  # Equally medium efficiency
+preset["efficiency"] = [0.1, 0.1, 0.2, 0.2, 0.4]  # Increasing efficiency
 # preset["reward_mode"] = "vectorial"
 
 preset["color_by_efficiency"] = True
 env = MAEGG(**preset)
-env.track = True
-env.stash_runs = True
+env = StatTracker(env)
+
+env.toggleTrack(True)
+env.toggleStash(True)
 
 acc_reward = [0] * env.n_agents
 
 env.reset()
-for r in range(3):
+for r in range(50):
     obs, _ = env.reset()
     acc_reward = [0] * env.n_agents
     for i in range(env.max_steps):
@@ -90,15 +93,9 @@ for r in range(3):
         # print(reward)
         # env.render()
 
-print("Mean apples geneated: ", np.mean(env.apple_gen_statistic))
-# Print ratio gathered/gather_tries for each agent
-for ag in list(env.agents.values()):
-    print(
-        f"Agent {ag.id} efficiency {ag.efficiency}: obtained {round(ag.gathered / (ag.gather_tries + 1e-10), 2)} of {ag.gather_tries}")
-
 h = copy.deepcopy(env.history)
 env.setHistory(h)
 # env.plot_results("median")
-env.get_results()
+#env.get_results()
 env.print_results()
 pass
