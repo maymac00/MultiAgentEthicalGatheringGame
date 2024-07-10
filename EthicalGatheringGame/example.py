@@ -58,13 +58,13 @@ def greedy_agent(grid, agent, env):
 
 n = 5
 preset = copy.copy(large)
-preset["we"] = [1, 99]
+preset["we"] = [1, 10]
 preset["donation_capacity"] = 100
 preset["max_steps"] = 500
 preset["n_agents"] = n
 # preset["efficiency"] = [0.1] * n # Equally low efficiency
 # preset["efficiency"] = [0.5] * n  # Equally medium efficiency
-preset["efficiency"] = [0.1, 0.1, 0.2, 0.2, 0.4]  # Increasing efficiency
+preset["efficiency"] = [0.85, 0.85, 0.2, 0.2, 0.2]  # 40% efficiency
 # preset["reward_mode"] = "vectorial"
 
 preset["color_by_efficiency"] = True
@@ -77,7 +77,7 @@ env.toggleStash(True)
 acc_reward = [0] * env.n_agents
 
 env.reset()
-for r in range(50):
+for r in range(25):
     obs, _ = env.reset()
     acc_reward = [0] * env.n_agents
     for i in range(env.max_steps):

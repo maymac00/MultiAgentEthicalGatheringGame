@@ -89,10 +89,21 @@ class StatTracker(gym.core.Wrapper):
         self.apples_dropped = [RunningMeanStd(shape=()) for _ in range(env.n_agents)]
         self.apples_from_box = [RunningMeanStd(shape=()) for _ in range(env.n_agents)]
         self.apples_generated = RunningMeanStd(shape=())
+        self.global_apples_stepped = RunningMeanStd(shape=())
+        self.global_apples_gather = RunningMeanStd(shape=())
+        self.global_apples_dropped = RunningMeanStd(shape=())
 
     def step(self, action):
         obs, rews, dones, info = self.env.step(action)
+
         if all(dones):
+            gather = np.array([agent.gathered for agent in self.env.agents.values()]).sum()
+            drop = np.array([agent.apples_dropped for agent in self.env.agents.values()]).sum()
+            taken = gather + drop
+            self.global_apples_stepped.update(np.expand_dims([taken], axis=0))
+            self.global_apples_gather.update(np.expand_dims([gather], axis=0))
+            self.global_apples_dropped.update(np.expand_dims([drop], axis=0))
+
             for i, agent in self.env.agents.items():
                 self.apples_gathered[i].update(np.expand_dims(np.array(agent.gathered), axis=0))
                 self.apples_dropped[i].update(np.expand_dims(np.array(agent.apples_dropped), axis=0))
@@ -105,12 +116,21 @@ class StatTracker(gym.core.Wrapper):
         # Plot as fancy table with
         table = PrettyTable()
 
-        title = "Agent statistics"
+        title = "Global statistics"
         print("=" * len(title))
         print(title)
         print("=" * len(title))
 
-        print("Mean + std of apples generated on the map: ", self.apples_generated.mean, "+-", self.apples_generated.var)
+        print("Mean + std of apples generated on the map: ", self.apples_generated.mean[0], "+-",
+              self.apples_generated.var[0])
+        print("Mean + std of apples taken: ", self.global_apples_stepped.mean[0], "+-", self.global_apples_stepped.var[0], "from which:")
+        print(self.global_apples_gather.mean[0], "+-", self.global_apples_gather.var[0], "where effectively gathered")
+        print(self.global_apples_dropped.mean[0], "+-", self.global_apples_dropped.var[0], "where dropped")
+
+        title = "Agent statistics"
+        print("=" * len(title))
+        print(title)
+        print("=" * len(title))
 
         table.field_names = ["Agent", "Apples Stepped", "Apples Stepped Ratio", "Apples gathered", "Apples dropped",
                              "Apples from box"]
@@ -123,8 +143,9 @@ class StatTracker(gym.core.Wrapper):
 
         for i in range(self.env.n_agents):
             table.add_row([i, self.apples_gathered[i].mean + self.apples_dropped[i].mean,
-                           ((self.apples_gathered[i].mean + self.apples_dropped[i].mean) / self.apples_generated.mean)[
-                               0], self.apples_gathered[i].mean, self.apples_dropped[i].mean,
+                           round(((self.apples_gathered[i].mean + self.apples_dropped[
+                               i].mean) / self.apples_generated.mean)[
+                                     0], 2), self.apples_gathered[i].mean, self.apples_dropped[i].mean,
                            self.apples_from_box[i].mean])
 
         print(table)
