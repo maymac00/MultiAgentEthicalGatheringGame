@@ -151,7 +151,8 @@ class StatTracker(gym.core.Wrapper):
                            self.apples_from_box[i].mean])
 
         print(table)
-
+        results["stats_table"] = np.array(table._rows)
+        results["stats_header"] = table.field_names
         return results
 
 
