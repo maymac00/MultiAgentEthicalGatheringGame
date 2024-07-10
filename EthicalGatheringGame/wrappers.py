@@ -112,7 +112,7 @@ class StatTracker(gym.core.Wrapper):
         return obs, rews, dones, info
 
     def print_results(self):
-        header, histogram = self.env.print_results()
+        results = self.env.print_results()
         # Plot as fancy table with
         table = PrettyTable()
 
@@ -121,11 +121,12 @@ class StatTracker(gym.core.Wrapper):
         print(title)
         print("=" * len(title))
 
-        print("Mean + std of apples generated on the map: ", self.apples_generated.mean[0], "+-",
-              self.apples_generated.var[0])
-        print("Mean + std of apples taken: ", self.global_apples_stepped.mean[0], "+-", self.global_apples_stepped.var[0], "from which:")
-        print(self.global_apples_gather.mean[0], "+-", self.global_apples_gather.var[0], "where effectively gathered")
-        print(self.global_apples_dropped.mean[0], "+-", self.global_apples_dropped.var[0], "where dropped")
+        print("Mean + std of apples generated on the map: ", round(self.apples_generated.mean[0], 2), "+-",
+              round(self.apples_generated.var[0], 2))
+        print("Mean + std of apples taken: ", round(self.global_apples_stepped.mean[0],2), "+-",
+              round(self.global_apples_stepped.var[0],2), "from which:")
+        print(round(self.global_apples_gather.mean[0],2), "+-", round(self.global_apples_gather.var[0],2), "where effectively gathered")
+        print(round(self.global_apples_dropped.mean[0], 2), "+-", round(self.global_apples_dropped.var[0], 2), "where dropped")
 
         title = "Agent statistics"
         print("=" * len(title))
@@ -142,13 +143,16 @@ class StatTracker(gym.core.Wrapper):
             self.apples_from_box[i].mean = round(self.apples_from_box[i].mean, 2)
 
         for i in range(self.env.n_agents):
-            table.add_row([i, self.apples_gathered[i].mean + self.apples_dropped[i].mean,
+            steps = round(self.apples_gathered[i].mean + self.apples_dropped[i].mean, 2)
+            table.add_row([i, steps,
                            round(((self.apples_gathered[i].mean + self.apples_dropped[
                                i].mean) / self.apples_generated.mean)[
                                      0], 2), self.apples_gathered[i].mean, self.apples_dropped[i].mean,
                            self.apples_from_box[i].mean])
 
         print(table)
+
+        return results
 
 
 if __name__ == "__main__":

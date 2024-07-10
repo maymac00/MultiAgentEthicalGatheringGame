@@ -665,7 +665,10 @@ class MAEGG(gym.Env):
         """
         :return:
         """
+        results = {}
         header, histogram = self.get_results("histogram")
+        results["histogram_data"] = histogram
+        results["histogram_header"] = header
 
         # Pretty print histogram for each agent in different columns
         table = prettytable.PrettyTable()
@@ -680,7 +683,7 @@ class MAEGG(gym.Env):
         print("=" * len(title))
 
         print(table)
-        return header, histogram
+        return results
 
     def get_results(self, type="histogram"):
         if type == "histogram":

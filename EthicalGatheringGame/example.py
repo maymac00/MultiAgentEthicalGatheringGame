@@ -77,7 +77,7 @@ env.toggleStash(True)
 acc_reward = [0] * env.n_agents
 
 env.reset()
-for r in range(25):
+for r in range(5):
     obs, _ = env.reset()
     acc_reward = [0] * env.n_agents
     for i in range(env.max_steps):
