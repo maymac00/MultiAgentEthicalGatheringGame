@@ -131,7 +131,7 @@ class MAEGG(gym.Env):
         self.obejctive_order = objective_order
         if self.obejctive_order not in ["individual_first", "ethical_first"]:
             raise ValueError("Objective order not recognised. Choose between 'individual_first' and 'ethical_first'")
-        if self.obejctive_order == individual_first:
+        if self.obejctive_order == "ethical_first":
             self.we = [self.we[1], self.we[0]]
 
         # Variables
