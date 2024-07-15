@@ -129,6 +129,10 @@ class MAEGG(gym.Env):
         self.init_state = init_state
         self.reward_mode = reward_mode
         self.obejctive_order = objective_order
+        if self.obejctive_order not in ["individual_first", "ethical_first"]:
+            raise ValueError("Objective order not recognised. Choose between 'individual_first' and 'ethical_first'")
+        if self.obejctive_order == individual_first:
+            self.we = [self.we[1], self.we[0]]
 
         # Variables
         self.map = Maps(sketch=self.map_size, init_state=init_state)
