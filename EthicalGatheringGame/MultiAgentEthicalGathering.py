@@ -99,7 +99,7 @@ class MAEGG(gym.Env):
 
     def __init__(self, n_agents, map_size, we: np.ndarray, inequality_mode, max_steps, donation_capacity,
                  survival_threshold, visual_radius, partial_observability, init_state="empty", track_history=False,
-                 efficiency: np.ndarray = None, color_by_efficiency=False, reward_mode="scalarised",
+                 efficiency: np.ndarray = None, color_by_efficiency=False, reward_mode="scalarised", obs_mode="nn",
                  objective_order="ethical_first"):
         super(MAEGG, self).__init__()
         Agent.idx = 0
@@ -129,6 +129,11 @@ class MAEGG(gym.Env):
         self.init_state = init_state
         self.reward_mode = reward_mode
         self.obejctive_order = objective_order
+        self.obs_mode = obs_mode
+        if self.obejctive_order not in ["individual_first", "ethical_first"]:
+            raise ValueError("Objective order not recognised. Choose between 'individual_first' and 'ethical_first'")
+        if self.obejctive_order == "ethical_first":
+            self.we = [self.we[1], self.we[0]]
 
         # Variables
         self.map = Maps(sketch=self.map_size, init_state=init_state)
@@ -239,7 +244,6 @@ class MAEGG(gym.Env):
 
                 normalized_obs = np.concatenate((normalized_obs, aux))
                 observations.append(normalized_obs)
-            return observations
 
         else:
             obs_shape = np.prod(global_state.shape)
@@ -263,7 +267,19 @@ class MAEGG(gym.Env):
                 normalized_obs = np.concatenate((normalized_obs, aux))
                 observations.append(normalized_obs)
 
-            return observations
+        if self.obs_mode == "cnn":
+            obs = []
+            for o in observations:
+                # Get map sketch size
+                map_dims = self.map.current_state.shape
+                po_dims = (self.visual_radius * 2 + 1, self.visual_radius * 2 + 1)
+                obs.append({
+                    "image": o[:-2].reshape(po_dims) if self.partial_observability else o[:-2].reshape(map_dims),
+                    "donation_box": o[-2],
+                    "survival_status": o[-1]
+                })
+            return obs
+        return observations
 
     def step(self, action):
         """
