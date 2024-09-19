@@ -1,7 +1,4 @@
-from PyQt5.QtQml import kwargs
-from gym.envs.registration import register
-from gym import utils
-
+from gymnasium import register
 from EthicalGatheringGame.MultiAgentEthicalGathering import MAEGG
 from EthicalGatheringGame.wrappers import *
 import EthicalGatheringGame.presets as presets
