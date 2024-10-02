@@ -225,7 +225,7 @@ class MAEGG(gym.Env):
                       y - self.visual_radius:y + self.visual_radius + 1]
                 obs_shape = np.prod(obs.shape)
                 obs = np.reshape(obs, (obs_shape,))
-                normalized_obs = np.ones(obs_shape)
+                normalized_obs = np.ones(obs_shape, dtype=np.float32)
                 normalized_obs[obs == '@'] = 0.5
                 normalized_obs[obs == ag.id] = 0.75
                 normalized_obs[obs == ' '] = 0.25
@@ -249,7 +249,7 @@ class MAEGG(gym.Env):
             obs_shape = np.prod(global_state.shape)
             obs = np.reshape(global_state, (obs_shape,))
             for ag in self.agents.values():
-                normalized_obs = np.ones(obs.shape)
+                normalized_obs = np.ones(obs.shape, dtype=np.float32)
                 normalized_obs[obs == '@'] = 0.5
                 normalized_obs[obs == ' '] = 0.25
                 normalized_obs[obs == ag.id] = 0.75
