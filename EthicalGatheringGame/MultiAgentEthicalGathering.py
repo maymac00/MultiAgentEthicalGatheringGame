@@ -161,7 +161,7 @@ class MAEGG(gym.Env):
         self.stash = []
 
         # Env Setup
-        self.action_space = gym.spaces.tuple.Tuple([gym.spaces.Discrete(7)]*self.n_agents)
+        self.action_space = gym.spaces.tuple.Tuple([gym.spaces.Discrete(7)] * self.n_agents)
 
         if self.reward_mode == "vectorial":
             self.reward_space = gym.spaces.Box(low=-1, high=1, shape=(2,), dtype=np.float32)
@@ -367,7 +367,7 @@ class MAEGG(gym.Env):
 
         return nObservations, np.array([ag.r for ag in self.agents.values()]), [done] * self.n_agents, info
 
-    def reset(self, seed=None):
+    def reset(self, seed=None, options=None):
         """
         Resets the environment. The map is reset, the agents are placed in the map and the donation box is emptied.
         :return:
