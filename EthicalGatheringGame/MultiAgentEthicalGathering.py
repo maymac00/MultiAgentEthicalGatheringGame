@@ -169,13 +169,13 @@ class MAEGG(gym.Env):
             self.reward_space = gym.spaces.Box(low=-1, high=1, shape=(1,), dtype=np.float32)
 
         if self.partial_observability:
-            self.observation_space = gym.spaces.Box(low=0, high=1,
+            self.observation_space = gym.spaces.tuple.Tuple([gym.spaces.Box(low=0, high=1,
                                                     shape=((self.visual_radius * 2 + 1) ** 2 + 2,),
-                                                    dtype=np.float32)
+                                                    dtype=np.float32)] * self.n_agents)
 
         else:
-            self.observation_space = [gym.spaces.Box(low=0, high=1, shape=(np.prod(self.map.current_state.shape) + 2,),
-                                                    dtype=np.float32)] * self.n_agents
+            self.observation_space = gym.spaces.tuple.Tuple([gym.spaces.Box(low=0, high=1, shape=(np.prod(self.map.current_state.shape) + 2,),
+                                                    dtype=np.float32)] * self.n_agents)
 
         # Log relevant info
         self.logger.debug("Environment initialized with parameters:")
