@@ -375,7 +375,7 @@ class MAEGG(ParallelEnv):
         if self.track:
             self.history.append(info)
 
-        return nObservations, np.array([float(ag.r) for ag in self.agents.values()]), done, False, info
+        return nObservations, {k:float(ag.r) for k,ag in enumerate(self.agents.values())}, done, False, info
 
     def reset(self, seed=None, options=None):
         """
