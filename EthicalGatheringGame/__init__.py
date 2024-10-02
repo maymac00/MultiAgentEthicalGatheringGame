@@ -1,3 +1,5 @@
+import copy
+
 from gymnasium import register
 from EthicalGatheringGame.MultiAgentEthicalGathering import MAEGG
 from EthicalGatheringGame.wrappers import *
@@ -36,15 +38,16 @@ register(
     kwargs= {**presets.large}
 )
 
+p = dict(**presets.large)
 for db in [0, 1, 10, 1000]:
     for we in [0, 10, 2.6]:
         for eff_rate in [0, 0.2, 0.4, 0.6, 0.8, 1]:
-            p = dict(**presets.large)
+
             p["donation_capacity"] = db
             p["we"] = [1, we]
             p["efficiency"] = [0.85] * int(5 * eff_rate) + [0.2] * int(5 - eff_rate *5)
             register(
                 id=f'MultiAgentEthicalGathering-large-db{db}-eff{eff_rate}-we{we}-v1',
                 entry_point='EthicalGatheringGame.MultiAgentEthicalGathering:MAEGG',
-                kwargs= {**p}
+                kwargs=copy.copy(p)
             )

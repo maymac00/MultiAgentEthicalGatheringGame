@@ -4,7 +4,7 @@ import numpy as np
 
 from matplotlib import pyplot as plt
 
-import gym
+import gymnasium as gym
 import json
 from EthicalGatheringGame.Maps import Maps
 import bisect

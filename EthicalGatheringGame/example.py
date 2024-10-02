@@ -1,7 +1,7 @@
 import copy
 import random
 
-import gym
+import gymnasium as gym
 import numpy as np
 import matplotlib
 
@@ -55,20 +55,7 @@ def greedy_agent(grid, agent, env):
     move = greedy_move(agent.position, target_pos)
     return move
 
-
-n = 5
-preset = copy.copy(large)
-preset["we"] = [1, 10]
-preset["donation_capacity"] = 100
-preset["max_steps"] = 500
-preset["n_agents"] = n
-# preset["efficiency"] = [0.1] * n # Equally low efficiency
-# preset["efficiency"] = [0.5] * n  # Equally medium efficiency
-preset["efficiency"] = [0.85, 0.85, 0.2, 0.2, 0.2]  # 40% efficiency
-# preset["reward_mode"] = "vectorial"
-
-preset["color_by_efficiency"] = True
-env = MAEGG(**preset)
+env = gym.make("MultiAgentEthicalGathering-large-db10-eff0.6-we10-v1")
 env = StatTracker(env)
 
 env.toggleTrack(True)
@@ -91,7 +78,7 @@ for r in range(5):
         obs, reward, done, info = env.step(actions)
         acc_reward += reward
         # print(reward)
-        # env.render()
+        env.render()
 
 h = copy.deepcopy(env.history)
 env.setHistory(h)
