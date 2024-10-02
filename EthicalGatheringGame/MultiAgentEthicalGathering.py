@@ -205,7 +205,7 @@ class MAEGG(gym.Env):
         global_state = self.map.current_state.copy()
 
         for ag in self.agents.values():
-            global_state[*ag.position] = ag.id
+            global_state[ag.position[0],ag.position[1]] = ag.id
 
         donation_box_states = list(range(self.n_agents + 1)) + [self.donation_capacity]
         normalized_db_state = bisect.bisect_right(donation_box_states, self.donation_box) - 1
@@ -405,7 +405,7 @@ class MAEGG(gym.Env):
 
         if mode == "text":
             for ag in self.agents.values():
-                frame[*ag.position] = ag.id
+                frame[ag.position[0],ag.position[1]] = ag.id
             print(frame)
 
         elif mode == "human":
@@ -491,8 +491,8 @@ class MAEGG(gym.Env):
             agent.position += move_vec
             events.add("moved")
         # Did agent step on apple?
-        if self.map.current_state[*agent.position] == '@':
-            self.map.current_state[*agent.position] = ' '
+        if self.map.current_state[agent.position[0],agent.position[1]] == '@':
+            self.map.current_state[agent.position[0],agent.position[1]] = ' '
             if self.inequality_mode == "loss":
                 if np.random.rand() < agent.efficiency:
                     agent.apples += 1
