@@ -10,7 +10,7 @@ from EthicalGatheringGame.Maps import Maps
 import bisect
 import logging
 import prettytable
-
+from pettingzoo import ParallelEnv
 
 # TODO: Check env.Wrapper subclassing to achieve: action space mapping, callbacks, last action memory, etc. This will
 #  keep the base env simpler
@@ -65,7 +65,7 @@ class Agent:
         return self.id == other.id
 
 
-class MAEGG(gym.Env):
+class MAEGG(ParallelEnv):
     # ACTION SPACE
     MOVE_UP = 0
     MOVE_DOWN = 1
@@ -79,6 +79,11 @@ class MAEGG(gym.Env):
                     DONATE: (0, 0), TAKE_DONATION: (0, 0)}
 
     log_level = logging.DEBUG
+    metadata = {
+        "name": "MultiAgentEthicalGathering-v1",
+        "render_modes": ["human", "partial_observability"],
+        "render_fps": 2
+    }
 
     @staticmethod
     def read_params_from_json(json_path):
@@ -125,11 +130,14 @@ class MAEGG(gym.Env):
         self.survival_threshold = survival_threshold
         self.visual_radius = visual_radius
         self.partial_observability = partial_observability
+        if self.partial_observability:
+            self.render_mode = "partial_observability"
         self.color_by_efficiency = color_by_efficiency
         self.init_state = init_state
         self.reward_mode = reward_mode
         self.obejctive_order = objective_order
         self.obs_mode = obs_mode
+
         if self.obejctive_order not in ["individual_first", "ethical_first"]:
             raise ValueError("Objective order not recognised. Choose between 'individual_first' and 'ethical_first'")
         if self.obejctive_order == "ethical_first":
@@ -265,7 +273,7 @@ class MAEGG(gym.Env):
                     aux[1] = 1
 
                 normalized_obs = np.concatenate((normalized_obs, aux))
-                observations.append(normalized_obs)
+                observations.append(normalized_obs.astype(np.float32))
 
         if self.obs_mode == "cnn":
             obs = []
@@ -279,7 +287,9 @@ class MAEGG(gym.Env):
                     "survival_status": o[-1]
                 })
             return obs
-        return observations
+        for obs in observations:
+            obs = obs.astype(np.float32)
+        return tuple(observations)
 
     def step(self, action):
         """
@@ -365,7 +375,7 @@ class MAEGG(gym.Env):
         if self.track:
             self.history.append(info)
 
-        return nObservations, np.array([ag.r for ag in self.agents.values()]), [done] * self.n_agents, [False] * self.n_agents, info
+        return nObservations, np.array([float(ag.r) for ag in self.agents.values()]), done, False, info
 
     def reset(self, seed=None, options=None):
         """
@@ -395,10 +405,7 @@ class MAEGG(gym.Env):
             self.stash.append(self.build_history_array())
         self.history = []
         self.gen_apples = 0
-        return (self.getObservation(), {
-            "donation_box": self.donation_box,
-            "steps": self.steps,
-        })
+        return self.getObservation(), {}
 
     def render(self, mode="human", pause=0.03):
         frame = self.map.current_state.copy()
