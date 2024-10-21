@@ -65,7 +65,7 @@ class Agent:
         return self.id == other.id
 
 
-class MAEGG(ParallelEnv):
+class MAEGG(ParallelEnv, gym.Env):
     # ACTION SPACE
     MOVE_UP = 0
     MOVE_DOWN = 1

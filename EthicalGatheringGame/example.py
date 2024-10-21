@@ -88,7 +88,7 @@ for r in range(5):
         for ag, _ in sorted(zip(agents, untie_prio), reverse=True, key=lambda x: (x[0].efficiency, x[1])):
             actions_agent.append((greedy_agent(env.map.current_state, ag, env), ag.id))
         actions = [a for a, _ in sorted(actions_agent, key=lambda x: x[1])]
-        obs, reward, done, info = env.step(actions)
+        obs, reward, terminated, truncated, info = env.step(actions)
         acc_reward += reward
         # print(reward)
         # env.render()
