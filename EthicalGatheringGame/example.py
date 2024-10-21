@@ -3,10 +3,6 @@ import random
 
 import gym
 import numpy as np
-import matplotlib
-
-matplotlib.use('TkAgg')
-from matplotlib import pyplot as plt
 from EthicalGatheringGame import MAEGG
 from EthicalGatheringGame.presets import tiny, small, medium, large
 from EthicalGatheringGame.wrappers import NormalizeReward, StatTracker
@@ -62,12 +58,9 @@ preset["we"] = [1, 10]
 preset["donation_capacity"] = 100
 preset["max_steps"] = 500
 preset["n_agents"] = n
-# preset["efficiency"] = [0.1] * n # Equally low efficiency
-# preset["efficiency"] = [0.5] * n  # Equally medium efficiency
 preset["efficiency"] = [0.85, 0.85, 0.2, 0.2, 0.2]  # 40% efficiency
-# preset["reward_mode"] = "vectorial"
-
 preset["color_by_efficiency"] = True
+preset["obs_mode"] = "cnn"
 env = MAEGG(**preset)
 env = StatTracker(env)
 
@@ -95,7 +88,5 @@ for r in range(5):
 
 h = copy.deepcopy(env.history)
 env.setHistory(h)
-# env.plot_results("median")
-#env.get_results()
 env.print_results()
 pass
