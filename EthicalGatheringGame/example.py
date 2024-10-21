@@ -1,7 +1,7 @@
 import copy
 import random
 
-import gymnasium as gym
+import gym
 import numpy as np
 import matplotlib
 
