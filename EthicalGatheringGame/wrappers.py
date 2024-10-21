@@ -94,22 +94,24 @@ class StatTracker(gym.core.Wrapper):
         self.global_apples_dropped = RunningMeanStd(shape=())
 
     def step(self, action):
-        obs, rews, dones, info = self.env.step(action)
+        obs, rews, terminated, truncated, info = self.env.step(action)
 
-        if all(dones):
-            gather = np.array([agent.gathered for agent in self.env.agents.values()]).sum()
-            drop = np.array([agent.apples_dropped for agent in self.env.agents.values()]).sum()
+        agents = self.env.unwrapped.agents
+
+        if terminated or truncated:
+            gather = np.array([agent.gathered for agent in agents.values()]).sum()
+            drop = np.array([agent.apples_dropped for agent in agents.values()]).sum()
             taken = gather + drop
             self.global_apples_stepped.update(np.expand_dims([taken], axis=0))
             self.global_apples_gather.update(np.expand_dims([gather], axis=0))
             self.global_apples_dropped.update(np.expand_dims([drop], axis=0))
 
-            for i, agent in self.env.agents.items():
+            for i, agent in agents.items():
                 self.apples_gathered[i].update(np.expand_dims(np.array(agent.gathered), axis=0))
                 self.apples_dropped[i].update(np.expand_dims(np.array(agent.apples_dropped), axis=0))
                 self.apples_from_box[i].update(np.expand_dims(np.array(agent.apples_from_box), axis=0))
             self.apples_generated.update(np.expand_dims([info["sim_data"]["generated_apples"]], axis=0))
-        return obs, rews, dones, info
+        return obs, rews, terminated, truncated, info
 
     def print_results(self):
         results = self.env.print_results()

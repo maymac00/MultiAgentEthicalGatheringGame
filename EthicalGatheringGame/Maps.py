@@ -96,8 +96,8 @@ class Maps:
             mask = np.logical_and(mask, aux.sum(axis=1) > 0)
 
         # If an apple is already on the cell, we want to keep it there
-        final_value = np.logical_or(mask, self.current_state[*self.apple_cells.T] == '@')
-        self.current_state[*self.apple_cells.T] = np.where(final_value, '@', ' ')
+        final_value = np.logical_or(mask, self.current_state[self.apple_cells.T[0], self.apple_cells.T[1]] == '@')
+        self.current_state[self.apple_cells.T[0], self.apple_cells.T[1]] = np.where(final_value, '@', ' ')
         return mask.sum()
 
     def spawn_all_apples(self):
@@ -105,4 +105,4 @@ class Maps:
         Spawns apples on all apple cells
         :return:
         """
-        self.current_state[*self.apple_cells.T] = '@'
+        self.current_state[self.apple_cells.T[0], self.apple_cells.T[1]] = '@'

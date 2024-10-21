@@ -9,7 +9,9 @@ tiny = {
     "visual_radius": 0,
     "partial_observability": 0,
     "init_state": "empty",
-    "reward_mode": "scalarised"
+    "reward_mode": "scalarised",
+    "color_by_efficiency": True,
+    "objective_order": "individual_first"
 }
 small = {
     "n_agents": 2,
@@ -22,7 +24,9 @@ small = {
     "visual_radius": 0,
     "partial_observability": 0,
     "init_state": "empty",
-    "reward_mode": "scalarised"
+    "reward_mode": "scalarised",
+    "color_by_efficiency": True,
+    "objective_order": "individual_first"
 }
 medium = {
     "n_agents": 3,
@@ -36,7 +40,9 @@ medium = {
     "partial_observability": 1,
     "init_state": "empty",
     "efficiency": [0.2, 0.2, 0.67],
-    "reward_mode": "scalarised"
+    "reward_mode": "scalarised",
+    "color_by_efficiency": True,
+    "objective_order": "individual_first"
 }
 large = {
     "n_agents": 5,
@@ -50,5 +56,7 @@ large = {
     "partial_observability": 1,
     "init_state": "empty",
     "efficiency": [0.2, 0.2, 0.67, 0.2, 0.67],
-    "reward_mode": "scalarised"
+    "reward_mode": "scalarised",
+    "color_by_efficiency": True,
+    "objective_order": "individual_first"
 }

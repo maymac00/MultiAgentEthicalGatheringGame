@@ -10,7 +10,7 @@ from EthicalGatheringGame.Maps import Maps
 import bisect
 import logging
 import prettytable
-
+from pettingzoo import ParallelEnv
 
 # TODO: Check env.Wrapper subclassing to achieve: action space mapping, callbacks, last action memory, etc. This will
 #  keep the base env simpler
@@ -65,7 +65,7 @@ class Agent:
         return self.id == other.id
 
 
-class MAEGG(gym.Env):
+class MAEGG(ParallelEnv):
     # ACTION SPACE
     MOVE_UP = 0
     MOVE_DOWN = 1
@@ -79,6 +79,11 @@ class MAEGG(gym.Env):
                     DONATE: (0, 0), TAKE_DONATION: (0, 0)}
 
     log_level = logging.DEBUG
+    metadata = {
+        "name": "MultiAgentEthicalGathering-v1",
+        "render_modes": ["human", "partial_observability"],
+        "render_fps": 2
+    }
 
     @staticmethod
     def read_params_from_json(json_path):
@@ -125,11 +130,14 @@ class MAEGG(gym.Env):
         self.survival_threshold = survival_threshold
         self.visual_radius = visual_radius
         self.partial_observability = partial_observability
+        if self.partial_observability:
+            self.render_mode = "partial_observability"
         self.color_by_efficiency = color_by_efficiency
         self.init_state = init_state
         self.reward_mode = reward_mode
         self.obejctive_order = objective_order
         self.obs_mode = obs_mode
+
         if self.obejctive_order not in ["individual_first", "ethical_first"]:
             raise ValueError("Objective order not recognised. Choose between 'individual_first' and 'ethical_first'")
         if self.obejctive_order == "ethical_first":
@@ -161,7 +169,7 @@ class MAEGG(gym.Env):
         self.stash = []
 
         # Env Setup
-        self.action_space = gym.spaces.Discrete(7)
+        self.action_space = gym.spaces.tuple.Tuple([gym.spaces.Discrete(7)] * self.n_agents)
 
         if self.reward_mode == "vectorial":
             self.reward_space = gym.spaces.Box(low=-1, high=1, shape=(2,), dtype=np.float32)
@@ -169,13 +177,13 @@ class MAEGG(gym.Env):
             self.reward_space = gym.spaces.Box(low=-1, high=1, shape=(1,), dtype=np.float32)
 
         if self.partial_observability:
-            self.observation_space = gym.spaces.Box(low=0, high=1,
+            self.observation_space = gym.spaces.tuple.Tuple([gym.spaces.Box(low=0, high=1,
                                                     shape=((self.visual_radius * 2 + 1) ** 2 + 2,),
-                                                    dtype=np.float32)
+                                                    dtype=np.float32)] * self.n_agents)
 
         else:
-            self.observation_space = gym.spaces.Box(low=0, high=1, shape=(np.prod(self.map.current_state.shape) + 2,),
-                                                    dtype=np.float32)
+            self.observation_space = gym.spaces.tuple.Tuple([gym.spaces.Box(low=0, high=1, shape=(np.prod(self.map.current_state.shape) + 2,),
+                                                    dtype=np.float32)] * self.n_agents)
 
         # Log relevant info
         self.logger.debug("Environment initialized with parameters:")
@@ -205,7 +213,7 @@ class MAEGG(gym.Env):
         global_state = self.map.current_state.copy()
 
         for ag in self.agents.values():
-            global_state[*ag.position] = ag.id
+            global_state[ag.position[0],ag.position[1]] = ag.id
 
         donation_box_states = list(range(self.n_agents + 1)) + [self.donation_capacity]
         normalized_db_state = bisect.bisect_right(donation_box_states, self.donation_box) - 1
@@ -225,7 +233,7 @@ class MAEGG(gym.Env):
                       y - self.visual_radius:y + self.visual_radius + 1]
                 obs_shape = np.prod(obs.shape)
                 obs = np.reshape(obs, (obs_shape,))
-                normalized_obs = np.ones(obs_shape)
+                normalized_obs = np.ones(obs_shape, dtype=np.float32)
                 normalized_obs[obs == '@'] = 0.5
                 normalized_obs[obs == ag.id] = 0.75
                 normalized_obs[obs == ' '] = 0.25
@@ -249,7 +257,7 @@ class MAEGG(gym.Env):
             obs_shape = np.prod(global_state.shape)
             obs = np.reshape(global_state, (obs_shape,))
             for ag in self.agents.values():
-                normalized_obs = np.ones(obs.shape)
+                normalized_obs = np.ones(obs.shape, dtype=np.float32)
                 normalized_obs[obs == '@'] = 0.5
                 normalized_obs[obs == ' '] = 0.25
                 normalized_obs[obs == ag.id] = 0.75
@@ -265,7 +273,7 @@ class MAEGG(gym.Env):
                     aux[1] = 1
 
                 normalized_obs = np.concatenate((normalized_obs, aux))
-                observations.append(normalized_obs)
+                observations.append(normalized_obs.astype(np.float32))
 
         if self.obs_mode == "cnn":
             obs = []
@@ -279,7 +287,9 @@ class MAEGG(gym.Env):
                     "survival_status": o[-1]
                 })
             return obs
-        return observations
+        for obs in observations:
+            obs = obs.astype(np.float32)
+        return tuple(observations)
 
     def step(self, action):
         """
@@ -365,9 +375,9 @@ class MAEGG(gym.Env):
         if self.track:
             self.history.append(info)
 
-        return nObservations, np.array([ag.r for ag in self.agents.values()]), [done] * self.n_agents, info
+        return nObservations, np.array([float(ag.r) for ag in self.agents.values()]), done, False, info
 
-    def reset(self, seed=None):
+    def reset(self, seed=None, options=None):
         """
         Resets the environment. The map is reset, the agents are placed in the map and the donation box is emptied.
         :return:
@@ -395,17 +405,14 @@ class MAEGG(gym.Env):
             self.stash.append(self.build_history_array())
         self.history = []
         self.gen_apples = 0
-        return (self.getObservation(), {
-            "donation_box": self.donation_box,
-            "steps": self.steps,
-        })
+        return self.getObservation(), {}
 
     def render(self, mode="human", pause=0.03):
         frame = self.map.current_state.copy()
 
         if mode == "text":
             for ag in self.agents.values():
-                frame[*ag.position] = ag.id
+                frame[ag.position[0],ag.position[1]] = ag.id
             print(frame)
 
         elif mode == "human":
@@ -491,8 +498,8 @@ class MAEGG(gym.Env):
             agent.position += move_vec
             events.add("moved")
         # Did agent step on apple?
-        if self.map.current_state[*agent.position] == '@':
-            self.map.current_state[*agent.position] = ' '
+        if self.map.current_state[agent.position[0],agent.position[1]] == '@':
+            self.map.current_state[agent.position[0],agent.position[1]] = ' '
             if self.inequality_mode == "loss":
                 if np.random.rand() < agent.efficiency:
                     agent.apples += 1
