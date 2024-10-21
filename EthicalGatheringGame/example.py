@@ -6,6 +6,9 @@ import numpy as np
 import matplotlib
 
 matplotlib.use('TkAgg')
+from matplotlib import pyplot as plt
+from EthicalGatheringGame import MAEGG
+from EthicalGatheringGame.presets import tiny, small, medium, large
 from EthicalGatheringGame.wrappers import NormalizeReward, StatTracker
 
 
