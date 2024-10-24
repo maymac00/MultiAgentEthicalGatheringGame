@@ -484,6 +484,7 @@ class MAEGG(ParallelEnv, gym.Env):
         - Agent took donation
         - Agent above survival threshold
         - Agent did unethical action
+        - Agent failed to gather
         :param agent:
         :param action:
         :return: Set of events that happened as a result of the action.
@@ -494,23 +495,33 @@ class MAEGG(ParallelEnv, gym.Env):
         if action != MAEGG.DONATE and agent.apples > self.survival_threshold and self.donation_box < self.donation_capacity:
             events.add("did_not_donate")
 
+        move_position = agent.position
+
         if self.map.check_valid_position(agent.position + move_vec):
-            agent.position += move_vec
+            #agent.position += move_vec
+            move_position = agent.position + move_vec
             events.add("moved")
-        # Did agent step on apple?
-        if self.map.current_state[agent.position[0],agent.position[1]] == '@':
-            self.map.current_state[agent.position[0],agent.position[1]] = ' '
+        # Will agent step on apple?
+        if self.map.current_state[move_position[0],move_position[1]] == '@':
             if self.inequality_mode == "loss":
                 if np.random.rand() < agent.efficiency:
                     agent.apples += 1
                     agent.gathered += 1
                     events.add("picked_apple")
+                    agent.position = move_position
                 else:
                     agent.apples_dropped += 1
+                    events.remove("moved")
             else:
                 agent.apples += 1
                 agent.gathered += 1
                 events.add("picked_apple")
+                agent.position = move_position
+
+            if "moved" in events:
+                self.map.current_state[agent.position[0], agent.position[1]] = ' '  # Watch out, this has to be done after the agent moves
+        else:
+            agent.position = move_position
 
         if action == MAEGG.TAKE_DONATION:
             if agent.apples >= self.survival_threshold:

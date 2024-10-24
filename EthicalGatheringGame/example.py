@@ -59,7 +59,7 @@ def greedy_agent(grid, agent, env):
 n = 5
 preset = copy.copy(large)
 preset["we"] = [1, 10]
-preset["donation_capacity"] = 100
+preset["donation_capacity"] = 1000
 preset["max_steps"] = 500
 preset["n_agents"] = n
 # preset["efficiency"] = [0.1] * n # Equally low efficiency
@@ -77,7 +77,7 @@ env.toggleStash(True)
 acc_reward = [0] * env.n_agents
 
 env.reset()
-for r in range(5):
+for r in range(50):
     obs, _ = env.reset()
     acc_reward = [0] * env.n_agents
     for i in range(env.max_steps):
@@ -91,11 +91,12 @@ for r in range(5):
         obs, reward, terminated, truncated, info = env.step(actions)
         acc_reward += reward
         # print(reward)
-        # env.render()
+        env.render(pause=0.2)
 
 h = copy.deepcopy(env.history)
 env.setHistory(h)
-# env.plot_results("median")
-#env.get_results()
 env.print_results()
+env.plot_results("median")
+#env.get_results()
+
 pass
