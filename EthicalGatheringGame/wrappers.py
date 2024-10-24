@@ -26,9 +26,9 @@ class DummyPeers(gym.Wrapper):
         self.env = env
         self.dummy_mask = dummy_mask
 
-        env.logger.info("Dummy peers wrapper initialized")
-        env.logger.info(f"Dummy mask: {dummy_mask}")
-        if len(dummy_mask) != self.env.n_agents:
+        env.unwrapped.logger.info("Dummy peers wrapper initialized")
+        env.unwrapped.logger.info(f"Dummy mask: {dummy_mask}")
+        if len(dummy_mask) != self.env.unwrapped.n_agents:
             raise ValueError("Dummy mask must be of length n_agents")
 
     def step(self, action):
@@ -51,12 +51,12 @@ class NormalizeReward(gym.core.Wrapper):
         self.active = True
 
         self.return_rms = RunningMeanStd(shape=())
-        self.returns = np.zeros(env.n_agents)
+        self.returns = np.zeros(env.unwrapped.n_agents)
 
-        env.logger.info("Normalize reward wrapper initialized")
-        env.logger.info(f"Gamma: {gamma}")
+        env.unwrapped.logger.info("Normalize reward wrapper initialized")
+        env.unwrapped.logger.info(f"Gamma: {gamma}")
 
-        if env.reward_mode == "vectorial":
+        if env.unwrapped.reward_mode == "vectorial":
             raise ValueError("Vectorial rewards are not supported.")
 
     def step(self, action):
@@ -86,9 +86,9 @@ class StatTracker(gym.core.Wrapper):
     def __init__(self, env):
         super().__init__(env)
         self.env = env
-        self.apples_gathered = [RunningMeanStd(shape=()) for _ in range(env.n_agents)]
-        self.apples_dropped = [RunningMeanStd(shape=()) for _ in range(env.n_agents)]
-        self.apples_from_box = [RunningMeanStd(shape=()) for _ in range(env.n_agents)]
+        self.apples_gathered = [RunningMeanStd(shape=()) for _ in range(env.unwrapped.n_agents)]
+        self.apples_dropped = [RunningMeanStd(shape=()) for _ in range(env.unwrapped.n_agents)]
+        self.apples_from_box = [RunningMeanStd(shape=()) for _ in range(env.unwrapped.n_agents)]
         self.apples_generated = RunningMeanStd(shape=())
         self.global_apples_stepped = RunningMeanStd(shape=())
         self.global_apples_gather = RunningMeanStd(shape=())
@@ -140,12 +140,12 @@ class StatTracker(gym.core.Wrapper):
                              "Apples from box"]
 
         # Round values to 2 decimal points
-        for i, agent in self.env.agents.items():
+        for i, agent in self.env.unwrapped.agents.items():
             self.apples_gathered[i].mean = round(self.apples_gathered[i].mean, 2)
             self.apples_dropped[i].mean = round(self.apples_dropped[i].mean, 2)
             self.apples_from_box[i].mean = round(self.apples_from_box[i].mean, 2)
 
-        for i in range(self.env.n_agents):
+        for i in range(self.env.unwrapped.n_agents):
             steps = round(self.apples_gathered[i].mean + self.apples_dropped[i].mean, 2)
             table.add_row([i, steps,
                            round(((self.apples_gathered[i].mean + self.apples_dropped[
@@ -166,9 +166,9 @@ if __name__ == "__main__":
     env = gym.make("MultiAgentEthicalGathering-v1", **tiny)
     # env = DummyPeers(env)
     env = NormalizeReward(env)
-    env.we = [1, 999]
-    env.reset()
+    env.unwrapped.we = [1, 999]
+    env.unwrapped.reset()
     for i in range(100):
-        obs, rews, _, _ = env.step([np.random.randint(0, 5) for _ in range(env.n_agents)])
+        obs, rews, _, _ = env.step([np.random.randint(0, 5) for _ in range(env.unwrapped.n_agents)])
         print(rews)
     pass
