@@ -60,12 +60,13 @@ class NormalizeReward(gym.core.Wrapper):
             raise ValueError("Vectorial rewards are not supported.")
 
     def step(self, action):
-        obs, rews, dones, infos = self.env.step(action)
+        obs, rews, terminated, truncated, infos = self.env.step(action)
+        terminated = [terminated] * self.env.unwrapped.n_agents
         if self.active:
             self.returns = self.returns * self.gamma + rews
             rews = self.normalize(rews)
-            self.returns[dones] = 0.0
-        return obs, rews, dones, infos
+            self.returns[terminated] = 0.0
+        return obs, rews, terminated, truncated, infos
 
     def normalize(self, rews):
         self.return_rms.update(self.returns)

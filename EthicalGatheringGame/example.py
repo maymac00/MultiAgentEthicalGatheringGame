@@ -55,7 +55,6 @@ def greedy_agent(grid, agent, env):
     move = greedy_move(agent.position, target_pos)
     return move
 
-
 n = 5
 preset = copy.copy(large)
 preset["we"] = [1, 10]
