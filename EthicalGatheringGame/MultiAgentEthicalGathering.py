@@ -419,7 +419,7 @@ class MAEGG(ParallelEnv, gym.Env):
             rgb_frame = np.zeros((frame.shape[0], frame.shape[1], 3))
             rgb_frame[frame == '@'] = [0, 1, 0]
             efficencies = sorted(list(set(ag.efficiency for ag in self.agents.values())))
-            ordered_colors = [[0,0,1], [1.0, 0.498, 0.0549]]
+            ordered_colors = [[1.0, 0.498, 0.0549],[0,0,1]]
             if self.color_by_efficiency:
                 for ag in self.agents.values():
                     rgb_frame[ag.position[0], ag.position[1], :] = ordered_colors[efficencies.index(ag.efficiency)]
@@ -444,8 +444,14 @@ class MAEGG(ParallelEnv, gym.Env):
                 raise ValueError("Partial observability is disabled for full observability maps")
             rgb_frame = np.zeros((frame.shape[0], frame.shape[1], 3))
             rgb_frame[frame == '@'] = [0, 1, 0]
-            for ag in self.agents.values():
-                rgb_frame[ag.position[0], ag.position[1], :] = [1, 0, 0]
+            efficencies = sorted(list(set(ag.efficiency for ag in self.agents.values())))
+            ordered_colors = [[1.0, 0.498, 0.0549], [0, 0, 1]]
+            if self.color_by_efficiency:
+                for ag in self.agents.values():
+                    rgb_frame[ag.position[0], ag.position[1], :] = ordered_colors[efficencies.index(ag.efficiency)]
+            else:
+                for ag in self.agents.values():
+                    rgb_frame[ag.position[0], ag.position[1], :] = [1, 0, 0]
 
             # Set to grey the cells that are not visible
             mask = np.zeros((*rgb_frame.shape[:-1], self.n_agents))
