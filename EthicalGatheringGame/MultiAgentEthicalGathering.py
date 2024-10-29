@@ -418,8 +418,14 @@ class MAEGG(ParallelEnv, gym.Env):
         elif mode == "human":
             rgb_frame = np.zeros((frame.shape[0], frame.shape[1], 3))
             rgb_frame[frame == '@'] = [0, 1, 0]
-            for ag in self.agents.values():
-                rgb_frame[ag.position[0], ag.position[1], :] = [1, 0, 0]
+            efficencies = sorted(list(set(ag.efficiency for ag in self.agents.values())))
+            ordered_colors = [[0,0,1], [1.0, 0.498, 0.0549]]
+            if self.color_by_efficiency:
+                for ag in self.agents.values():
+                    rgb_frame[ag.position[0], ag.position[1], :] = ordered_colors[efficencies.index(ag.efficiency)]
+            else:
+                for ag in self.agents.values():
+                    rgb_frame[ag.position[0], ag.position[1], :] = [1, 0, 0]
             plt.figure(pause)
             plt.ion()
             plt.imshow(rgb_frame)
