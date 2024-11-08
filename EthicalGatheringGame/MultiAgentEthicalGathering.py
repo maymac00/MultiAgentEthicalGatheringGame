@@ -105,8 +105,8 @@ class MAEGG(ParallelEnv, gym.Env):
 
     def __init__(self, n_agents, map_size, we: np.ndarray, inequality_mode, max_steps, donation_capacity,
                  survival_threshold, visual_radius, partial_observability, init_state="empty", track_history=False,
-                 efficiency: np.ndarray = None, color_by_efficiency=False, reward_mode="scalarised", obs_mode="nn",
-                 objective_order="ethical_first"):
+                 efficiency=None, color_by_efficiency=False, reward_mode="scalarised", obs_mode="nn",
+                 objective_order="ethical_first", eff_agents=0.85, ineff_agents=0.15):
         super(MAEGG, self).__init__()
         Agent.idx = 0
         Agent.group_id = {}
@@ -138,6 +138,8 @@ class MAEGG(ParallelEnv, gym.Env):
         self.reward_mode = reward_mode
         self.obejctive_order = objective_order
         self.obs_mode = obs_mode
+        self.eff_agents = eff_agents
+        self.ineff_agents = ineff_agents
 
         if self.obejctive_order not in ["individual_first", "ethical_first"]:
             raise ValueError("Objective order not recognised. Choose between 'individual_first' and 'ethical_first'")
@@ -147,9 +149,14 @@ class MAEGG(ParallelEnv, gym.Env):
         # Variables
         self.map = Maps(sketch=self.map_size, init_state=init_state)
         self.dims = self.map.current_state.shape
-        self.efficiency = efficiency
+        # if efficency is a collection, it will be used as the efficiency of each agent. If it is a single value, it will be the percentage of agents as efficient agents
         if efficiency is None:
             self.efficiency = [i for i in range(1, self.n_agents + 1)]
+        elif isinstance(efficiency, float):
+            self.efficiency = [eff_agents] * int(self.n_agents*efficiency) + [ineff_agents] * int(self.n_agents - self.n_agents*efficiency)
+        else:
+            assert len(efficiency) == self.n_agents, "Efficiency list must have the same length as the number of agents"
+            self.efficiency = efficiency
 
         self.agents = {k: Agent(self.map.get_spawn_coords(), self.efficiency[k], color_by_efficiency) for k in
                        range(self.n_agents)}
@@ -196,6 +203,7 @@ class MAEGG(ParallelEnv, gym.Env):
         self.logger.debug("donation_capacity: {}".format(self.donation_capacity))
         self.logger.debug("survival_threshold: {}".format(self.survival_threshold))
         self.logger.debug("Weights: {}".format(self.we))
+        self.logger.debug("Efficiency: {}".format(self.efficiency))
 
     def getObservation(self):
         """
