@@ -67,7 +67,7 @@ very_large = {
     "we": [1, 2.6],
     "inequality_mode": "loss",
     "max_steps": 500,
-    "donation_capacity": 10,
+    "donation_capacity": 15,
     "survival_threshold": 30,
     "visual_radius": 4,
     "partial_observability": 1,
