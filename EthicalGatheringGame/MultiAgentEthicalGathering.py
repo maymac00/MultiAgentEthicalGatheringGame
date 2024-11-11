@@ -103,7 +103,7 @@ class MAEGG(ParallelEnv, gym.Env):
                 raise ValueError("Parameter {} not found in class attributes".format(k))
         return params
 
-    def __init__(self, n_agents, map_size, we: np.ndarray, inequality_mode, max_steps, donation_capacity,
+    def __init__(self, n_agents, map_size, we, inequality_mode, max_steps, donation_capacity,
                  survival_threshold, visual_radius, partial_observability, init_state="empty", track_history=False,
                  efficiency=None, color_by_efficiency=False, reward_mode="scalarised", obs_mode="nn",
                  objective_order="ethical_first", eff_agents=0.85, ineff_agents=0.15):
@@ -124,7 +124,15 @@ class MAEGG(ParallelEnv, gym.Env):
         # Parameters
         self.n_agents = n_agents
         self.map_size = map_size
-        self.we = we
+        if len(we) != 2:
+            try:
+                we = float(we)
+                self.we = [1, we]
+            except ValueError:
+                raise ValueError("Weights must be a list of two elements or a single float")
+        elif isinstance(we, list) or isinstance(we, tuple) or isinstance(we, np.ndarray):
+            if len(we) == 2:
+                self.we = we
         self.inequality_mode = inequality_mode
         self.max_steps = max_steps
         self.donation_capacity = donation_capacity
