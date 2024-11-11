@@ -124,15 +124,17 @@ class MAEGG(ParallelEnv, gym.Env):
         # Parameters
         self.n_agents = n_agents
         self.map_size = map_size
-        if len(we) != 2:
+        if isinstance(we, list) or isinstance(we, tuple) or isinstance(we, np.ndarray):
+            if len(we) == 2:
+                self.we = we
+            else:
+                raise ValueError("Weights must be a list of two elements or a single int or float")
+        else:
             try:
                 we = float(we)
                 self.we = [1, we]
             except ValueError:
                 raise ValueError("Weights must be a list of two elements or a single int or float")
-        elif isinstance(we, list) or isinstance(we, tuple) or isinstance(we, np.ndarray):
-            if len(we) == 2:
-                self.we = we
         self.inequality_mode = inequality_mode
         self.max_steps = max_steps
         self.donation_capacity = donation_capacity
