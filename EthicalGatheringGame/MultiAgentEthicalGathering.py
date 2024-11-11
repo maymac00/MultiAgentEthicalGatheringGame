@@ -129,7 +129,7 @@ class MAEGG(ParallelEnv, gym.Env):
                 we = float(we)
                 self.we = [1, we]
             except ValueError:
-                raise ValueError("Weights must be a list of two elements or a single float")
+                raise ValueError("Weights must be a list of two elements or a single int or float")
         elif isinstance(we, list) or isinstance(we, tuple) or isinstance(we, np.ndarray):
             if len(we) == 2:
                 self.we = we
