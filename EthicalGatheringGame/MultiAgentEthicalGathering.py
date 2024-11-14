@@ -12,6 +12,7 @@ import logging
 import prettytable
 from pettingzoo import ParallelEnv
 
+
 # TODO: Check env.Wrapper subclassing to achieve: action space mapping, callbacks, last action memory, etc. This will
 #  keep the base env simpler
 class Agent:
@@ -102,10 +103,10 @@ class MAEGG(ParallelEnv, gym.Env):
                 raise ValueError("Parameter {} not found in class attributes".format(k))
         return params
 
-    def __init__(self, n_agents, map_size, we: np.ndarray, inequality_mode, max_steps, donation_capacity,
+    def __init__(self, n_agents, map_size, we, inequality_mode, max_steps, donation_capacity,
                  survival_threshold, visual_radius, partial_observability, init_state="empty", track_history=False,
-                 efficiency: np.ndarray = None, color_by_efficiency=False, reward_mode="scalarised", obs_mode="nn",
-                 objective_order="ethical_first"):
+                 efficiency=None, color_by_efficiency=False, reward_mode="scalarised", obs_mode="nn",
+                 objective_order="ethical_first", eff_agents=0.85, ineff_agents=0.15):
         super(MAEGG, self).__init__()
         Agent.idx = 0
         Agent.group_id = {}
@@ -123,7 +124,17 @@ class MAEGG(ParallelEnv, gym.Env):
         # Parameters
         self.n_agents = n_agents
         self.map_size = map_size
-        self.we = we
+        if isinstance(we, list) or isinstance(we, tuple) or isinstance(we, np.ndarray):
+            if len(we) == 2:
+                self.we = we
+            else:
+                raise ValueError("Weights must be a list of two elements or a single int or float")
+        else:
+            try:
+                we = float(we)
+                self.we = [1, we]
+            except ValueError:
+                raise ValueError("Weights must be a list of two elements or a single int or float")
         self.inequality_mode = inequality_mode
         self.max_steps = max_steps
         self.donation_capacity = donation_capacity
@@ -137,6 +148,8 @@ class MAEGG(ParallelEnv, gym.Env):
         self.reward_mode = reward_mode
         self.obejctive_order = objective_order
         self.obs_mode = obs_mode
+        self.eff_agents = eff_agents
+        self.ineff_agents = ineff_agents
 
         if self.obejctive_order not in ["individual_first", "ethical_first"]:
             raise ValueError("Objective order not recognised. Choose between 'individual_first' and 'ethical_first'")
@@ -146,9 +159,14 @@ class MAEGG(ParallelEnv, gym.Env):
         # Variables
         self.map = Maps(sketch=self.map_size, init_state=init_state)
         self.dims = self.map.current_state.shape
-        self.efficiency = efficiency
+        # if efficency is a collection, it will be used as the efficiency of each agent. If it is a single value, it will be the percentage of agents as efficient agents
         if efficiency is None:
             self.efficiency = [i for i in range(1, self.n_agents + 1)]
+        elif isinstance(efficiency, float):
+            self.efficiency = [eff_agents] * int(self.n_agents*efficiency) + [ineff_agents] * int(self.n_agents - self.n_agents*efficiency)
+        else:
+            assert len(efficiency) == self.n_agents, "Efficiency list must have the same length as the number of agents"
+            self.efficiency = efficiency
 
         self.agents = {k: Agent(self.map.get_spawn_coords(), self.efficiency[k], color_by_efficiency) for k in
                        range(self.n_agents)}
@@ -178,12 +196,14 @@ class MAEGG(ParallelEnv, gym.Env):
 
         if self.partial_observability:
             self.observation_space = gym.spaces.tuple.Tuple([gym.spaces.Box(low=0, high=1,
-                                                    shape=((self.visual_radius * 2 + 1) ** 2 + 2,),
-                                                    dtype=np.float32)] * self.n_agents)
+                                                                            shape=(
+                                                                            (self.visual_radius * 2 + 1) ** 2 + 2,),
+                                                                            dtype=np.float32)] * self.n_agents)
 
         else:
-            self.observation_space = gym.spaces.tuple.Tuple([gym.spaces.Box(low=0, high=1, shape=(np.prod(self.map.current_state.shape) + 2,),
-                                                    dtype=np.float32)] * self.n_agents)
+            self.observation_space = gym.spaces.tuple.Tuple(
+                [gym.spaces.Box(low=0, high=1, shape=(np.prod(self.map.current_state.shape) + 2,),
+                                dtype=np.float32)] * self.n_agents)
 
         # Log relevant info
         self.logger.debug("Environment initialized with parameters:")
@@ -193,6 +213,7 @@ class MAEGG(ParallelEnv, gym.Env):
         self.logger.debug("donation_capacity: {}".format(self.donation_capacity))
         self.logger.debug("survival_threshold: {}".format(self.survival_threshold))
         self.logger.debug("Weights: {}".format(self.we))
+        self.logger.debug("Efficiency: {}".format(self.efficiency))
 
     def getObservation(self):
         """
@@ -213,7 +234,7 @@ class MAEGG(ParallelEnv, gym.Env):
         global_state = self.map.current_state.copy()
 
         for ag in self.agents.values():
-            global_state[ag.position[0],ag.position[1]] = ag.id
+            global_state[ag.position[0], ag.position[1]] = ag.id
 
         donation_box_states = list(range(self.n_agents + 1)) + [self.donation_capacity]
         normalized_db_state = bisect.bisect_right(donation_box_states, self.donation_box) - 1
@@ -333,7 +354,7 @@ class MAEGG(ParallelEnv, gym.Env):
                 reward[i, 1] += -1.0
                 info["R'_N"][idx[i]] += 1
             if 'hungry' in events:
-                reward[i, 0] += -1.0
+                reward[i, 0] += -0.1
             if 'picked_apple' in events:
                 reward[i, 0] += 1.0
 
@@ -412,7 +433,7 @@ class MAEGG(ParallelEnv, gym.Env):
 
         if mode == "text":
             for ag in self.agents.values():
-                frame[ag.position[0],ag.position[1]] = ag.id
+                frame[ag.position[0], ag.position[1]] = ag.id
             print(frame)
             return
 
@@ -420,7 +441,7 @@ class MAEGG(ParallelEnv, gym.Env):
             rgb_frame = np.zeros((frame.shape[0], frame.shape[1], 3))
             rgb_frame[frame == '@'] = [0, 1, 0]
             efficencies = sorted(list(set(ag.efficiency for ag in self.agents.values())))
-            ordered_colors = [[1.0, 0.498, 0.0549],[0,0,1]]
+            ordered_colors = [[1.0, 0.498, 0.0549], [0, 0, 1]]
             if self.color_by_efficiency:
                 for ag in self.agents.values():
                     rgb_frame[ag.position[0], ag.position[1], :] = ordered_colors[efficencies.index(ag.efficiency)]
@@ -518,7 +539,7 @@ class MAEGG(ParallelEnv, gym.Env):
             move_position = agent.position + move_vec
             events.add("moved")
         # Will agent step on apple?
-        if self.map.current_state[move_position[0],move_position[1]] == '@':
+        if self.map.current_state[move_position[0], move_position[1]] == '@':
             if self.inequality_mode == "loss":
                 if np.random.rand() < agent.efficiency:
                     agent.apples += 1
@@ -535,14 +556,15 @@ class MAEGG(ParallelEnv, gym.Env):
                 agent.position = move_position
 
             if "moved" in events:
-                self.map.current_state[agent.position[0], agent.position[1]] = ' '  # Watch out, this has to be done after the agent moves
+                self.map.current_state[
+                    agent.position[0], agent.position[1]] = ' '  # Watch out, this has to be done after the agent moves
         else:
             agent.position = move_position
 
         if action == MAEGG.TAKE_DONATION:
             if agent.apples >= self.survival_threshold:
                 events.add("greedy")
-            if self.donation_box > 0:
+            if self.donation_box >= self.n_agents:
                 agent.apples += 1
                 agent.apples_from_box += 1
                 self.donation_box -= 1
