@@ -85,9 +85,9 @@ class StatTracker(gym.core.Wrapper):
     def __init__(self, env):
         super().__init__(env)
         self.env = env
-        self.apples_gathered = [RunningMeanStd(shape=()) for _ in range(env.n_agents)]
-        self.apples_dropped = [RunningMeanStd(shape=()) for _ in range(env.n_agents)]
-        self.apples_from_box = [RunningMeanStd(shape=()) for _ in range(env.n_agents)]
+        self.apples_gathered = [RunningMeanStd(shape=()) for _ in range(env.unwrapped.n_agents)]
+        self.apples_dropped = [RunningMeanStd(shape=()) for _ in range(env.unwrapped.n_agents)]
+        self.apples_from_box = [RunningMeanStd(shape=()) for _ in range(env.unwrapped.n_agents)]
         self.apples_generated = RunningMeanStd(shape=())
         self.global_apples_stepped = RunningMeanStd(shape=())
         self.global_apples_gather = RunningMeanStd(shape=())
@@ -114,7 +114,7 @@ class StatTracker(gym.core.Wrapper):
         return obs, rews, terminated, truncated, info
 
     def print_results(self):
-        results = self.env.print_results()
+        results = self.env.unwrapped.print_results()
         # Plot as fancy table with
         table = PrettyTable()
 
@@ -139,12 +139,12 @@ class StatTracker(gym.core.Wrapper):
                              "Apples from box"]
 
         # Round values to 2 decimal points
-        for i, agent in self.env.agents.items():
+        for i, agent in self.env.unwrapped.agents.items():
             self.apples_gathered[i].mean = round(self.apples_gathered[i].mean, 2)
             self.apples_dropped[i].mean = round(self.apples_dropped[i].mean, 2)
             self.apples_from_box[i].mean = round(self.apples_from_box[i].mean, 2)
 
-        for i in range(self.env.n_agents):
+        for i in range(self.env.unwrapped.n_agents):
             steps = round(self.apples_gathered[i].mean + self.apples_dropped[i].mean, 2)
             table.add_row([i, steps,
                            round(((self.apples_gathered[i].mean + self.apples_dropped[
@@ -165,9 +165,9 @@ if __name__ == "__main__":
     env = gym.make("MultiAgentEthicalGathering-v1", **tiny)
     # env = DummyPeers(env)
     env = NormalizeReward(env)
-    env.we = [1, 999]
+    env.unwrapped.we = [1, 999]
     env.reset()
     for i in range(100):
-        obs, rews, _, _ = env.step([np.random.randint(0, 5) for _ in range(env.n_agents)])
+        obs, rews, _, _ = env.step([np.random.randint(0, 5) for _ in range(env.unwrapped.n_agents)])
         print(rews)
     pass
