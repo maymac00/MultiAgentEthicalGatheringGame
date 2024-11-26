@@ -18,7 +18,7 @@ envs = [presets.tiny, presets.small, presets.medium, presets.large, presets.very
 for tag, env in zip(envs_tags, envs):
     args = copy.copy(env)
     register(
-        id=f'MultiAgentEthicalGathering-{env}-v1',
+        id=f'MultiAgentEthicalGathering-{tag}-v1',
         entry_point='EthicalGatheringGame.MultiAgentEthicalGathering:MAEGG',
         kwargs= {**args}
     )
@@ -26,7 +26,7 @@ for tag, env in zip(envs_tags, envs):
     args["reward_mode"] = "vectorial"
     args["objective_order"] = "ethical_first"
     register(
-        id=f'MultiAgentEthicalGathering-{env}-mo-v1',
+        id=f'MultiAgentEthicalGathering-{tag}-mo-v1',
         entry_point='EthicalGatheringGame.MultiAgentEthicalGathering:MAEGG',
         kwargs= {**args}
     )
