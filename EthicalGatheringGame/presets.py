@@ -47,7 +47,7 @@ medium = {
 large = {
     "n_agents": 5,
     "map_size": "large",
-    "we": [1, 2.6],
+    "we": [1, 10],
     "inequality_mode": "loss",
     "max_steps": 500,
     "donation_capacity": 15,
@@ -55,7 +55,7 @@ large = {
     "visual_radius": 4,
     "partial_observability": 1,
     "init_state": "empty",
-    "efficiency": [0.2, 0.2, 0.67, 0.2, 0.67],
+    "efficiency": 0.4,
     "reward_mode": "scalarised",
     "color_by_efficiency": True,
     "objective_order": "individual_first"
