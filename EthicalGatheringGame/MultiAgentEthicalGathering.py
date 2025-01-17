@@ -341,6 +341,8 @@ class MAEGG(ParallelEnv, gym.Env):
         sorted_agents, action, _, idx = map(list, zip(*sorted_pairs))
         for i in range(self.n_agents):
             events = self.get_action_events(sorted_agents[i], action[i])
+            if "hungry" in events and done:
+                events.add("died")
             info[sorted_agents[i].id] = {"events": events, "apples": sorted_agents[i].apples}
             if 'did_not_donate' in events:
                 info["R'_E"][idx[i]] += 1
