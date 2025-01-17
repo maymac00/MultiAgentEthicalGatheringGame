@@ -362,9 +362,9 @@ class MAEGG(ParallelEnv, gym.Env):
                 reward = np.vstack([reward[:, 1], reward[:, 0]]).T
 
             if self.reward_mode == "scalarised":
-                sorted_agents[i].r = np.dot(reward[i], self.we)
+                sorted_agents[i].r = np.dot(reward[i], self.we).astype(np.float32)
             elif self.reward_mode == "vectorial":
-                sorted_agents[i].r = reward[i]
+                sorted_agents[i].r = reward[i].astype(np.float32)
             else:
                 raise ValueError("Reward mode not recognised")
             sorted_agents[i].r_vec = reward[i]
@@ -396,7 +396,7 @@ class MAEGG(ParallelEnv, gym.Env):
         if self.track:
             self.history.append(info)
 
-        return nObservations, np.array([float(ag.r) for ag in self.agents.values()]), done, False, info
+        return nObservations, np.array([ag.r for ag in self.agents.values()]), done, False, info
 
     def reset(self, seed=None, options=None):
         """
@@ -435,6 +435,7 @@ class MAEGG(ParallelEnv, gym.Env):
             for ag in self.agents.values():
                 frame[ag.position[0], ag.position[1]] = ag.id
             print(frame)
+            return
 
         elif mode == "human":
             rgb_frame = np.zeros((frame.shape[0], frame.shape[1], 3))
@@ -505,6 +506,9 @@ class MAEGG(ParallelEnv, gym.Env):
             plt.show(block=False)
             plt.pause(0.05)
             plt.clf()
+
+
+
         pass
 
     def get_action_events(self, agent, action):

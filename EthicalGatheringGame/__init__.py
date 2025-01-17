@@ -12,30 +12,23 @@ register(
     entry_point='EthicalGatheringGame.MultiAgentEthicalGathering:MAEGG'
 )
 
-# Register the presets, and, for large preset, the db, and we
-
-register(
-    id='MultiAgentEthicalGathering-tiny-v1',
-    entry_point='EthicalGatheringGame.MultiAgentEthicalGathering:MAEGG',
-    kwargs= {**presets.tiny}
-)
-
-register(
-    id='MultiAgentEthicalGathering-small-v1',
-    entry_point='EthicalGatheringGame.MultiAgentEthicalGathering:MAEGG',
-    kwargs= {**presets.small}
-)
-
-register(
-    id='MultiAgentEthicalGathering-medium-v1',
-    entry_point='EthicalGatheringGame.MultiAgentEthicalGathering:MAEGG',
-    kwargs= {**presets.medium}
-)
-
-register(
-    id='MultiAgentEthicalGathering-very-large-v1',
-    entry_point='EthicalGatheringGame.MultiAgentEthicalGathering:MAEGG',
-    kwargs= {**presets.very_large}
-)
+# Register the presets
+envs_tags= ["tiny", "small", "medium", "large", "very_large"]
+envs = [presets.tiny, presets.small, presets.medium, presets.large, presets.very_large]
+for tag, env in zip(envs_tags, envs):
+    args = copy.copy(env)
+    register(
+        id=f'MultiAgentEthicalGathering-{tag}-v1',
+        entry_point='EthicalGatheringGame.MultiAgentEthicalGathering:MAEGG',
+        kwargs= {**args}
+    )
+    # multi-objective version
+    args["reward_mode"] = "vectorial"
+    args["objective_order"] = "ethical_first"
+    register(
+        id=f'MultiAgentEthicalGathering-{tag}-mo-v1',
+        entry_point='EthicalGatheringGame.MultiAgentEthicalGathering:MAEGG',
+        kwargs= {**args}
+    )
 
 
