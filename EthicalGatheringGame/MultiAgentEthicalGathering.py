@@ -775,13 +775,22 @@ class MAEGG(ParallelEnv, gym.Env):
             all_tags = sorted(list(all_tags))
 
             counter = np.zeros((self.n_agents, len(all_tags)), dtype=np.float32)
+            std = np.zeros((self.n_agents, len(all_tags)), dtype=np.float32)
             for h in event_histogram:
                 for i in range(self.n_agents):
                     counter[i] += np.array([h[i][tag] for tag in all_tags])
+                    std[i] += np.array([h[i][tag] for tag in all_tags]) ** 2
             counter = counter / len(self.stash)
             counter = np.round(counter, 2)
+            std = np.sqrt(std / len(self.stash) - counter ** 2)
+            std = np.round(std, 2)
 
-            return all_tags, counter
+            # create the table content as mean+-std
+            histogram = []
+            for i in range(self.n_agents):
+                histogram.append(["{} ± {}".format(str(counter[i, j]), str(std[i, j])) for j in range(len(all_tags))])
+
+            return all_tags, histogram
 
         if type == "apple_history":
             if len(self.history) == 0 and len(self.stash) == 0:
