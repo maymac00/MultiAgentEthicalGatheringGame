@@ -697,7 +697,7 @@ class MAEGG(ParallelEnv, gym.Env):
             # Plot survival threshold and donation capacity
             plt.plot([0, self.max_steps], [self.survival_threshold, self.survival_threshold],
                      label="Survival Threshold", linestyle='--', color='red')
-            plt.plot([0, self.max_steps], [self.donation_capacity, self.donation_capacity], label="Donation Capacity",
+            plt.plot([0, self.max_steps], [self.donation_capacity, self.donation_capacity], label="Donation Box Capacity",
                      linestyle='--', color='black')
             plt.legend()
 
