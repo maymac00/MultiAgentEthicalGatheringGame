@@ -703,7 +703,7 @@ class MAEGG(ParallelEnv, gym.Env):
 
             plt.title('Number of apples through time', fontsize=35)
             plt.xlabel('Timesteps', fontsize=35)
-            plt.ylabel('Nº of Apples', fontsize=35)
+            plt.ylabel('Number of Apples', fontsize=35)
 
             # Set all ticks size
             plt.xticks(fontsize=35)
