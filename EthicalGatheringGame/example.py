@@ -11,9 +11,9 @@ from EthicalGatheringGame import MAEGG
 from EthicalGatheringGame.presets import tiny, small, medium, large, very_large
 from EthicalGatheringGame.wrappers import NormalizeReward, StatTracker
 
-preset = copy.copy(very_large)
+preset = copy.copy(large)
 preset["we"] = [1, 10]
-preset["donation_capacity"] = 1000
+preset["donation_capacity"] = 0
 preset["max_steps"] = 500
 # preset["efficiency"] = [0.1] * n # Equally low efficiency
 # preset["efficiency"] = [0.5] * n  # Equally medium efficiency
@@ -82,7 +82,7 @@ env.toggleStash(True)
 acc_reward = [0] * env.n_agents
 
 env.reset()
-for r in range(1):
+for r in range(5):
     obs, _ = env.reset()
     acc_reward = [0] * env.n_agents
     for i in range(env.max_steps):
@@ -96,12 +96,12 @@ for r in range(1):
         obs, reward, terminated, truncated, info = env.step(actions)
         acc_reward += reward
         # print(reward)
-        env.render()
+        #env.render()
 
 h = copy.deepcopy(env.history)
 env.unwrapped.setHistory(h)
 env.print_results()
-env.unwrapped.plot_results("median")
+env.unwrapped.plot_results("median", save_path="results.png")
 #env.get_results()
 
 pass

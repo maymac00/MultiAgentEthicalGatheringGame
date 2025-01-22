@@ -673,6 +673,7 @@ class MAEGG(ParallelEnv, gym.Env):
             plt.legend()
 
         if type == "median":
+            plt.figure(figsize=(16, 12))
             apple_history = self.get_results("apple_history")
             median = np.median(apple_history, axis=0)
             iqr = np.percentile(apple_history, 75, axis=0) - np.percentile(apple_history, 25, axis=0)
@@ -699,7 +700,15 @@ class MAEGG(ParallelEnv, gym.Env):
                      label="Survival Threshold", linestyle='--', color='red')
             plt.plot([0, self.max_steps], [self.donation_capacity, self.donation_capacity], label="Donation Box Capacity",
                      linestyle='--', color='black')
-            plt.legend()
+
+            plt.title('Number of apples through time', fontsize=35)
+            plt.xlabel('Timesteps', fontsize=35)
+            plt.ylabel('Nº of Apples', fontsize=35)
+
+            # Set all ticks size
+            plt.xticks(fontsize=35)
+            plt.yticks(fontsize=35)
+            plt.legend(fontsize=30)
 
         if type == "mean":
             apple_history = self.get_results("apple_history")
