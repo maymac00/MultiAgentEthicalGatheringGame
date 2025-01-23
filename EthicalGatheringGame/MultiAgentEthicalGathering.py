@@ -13,8 +13,7 @@ import prettytable
 from pettingzoo import ParallelEnv
 
 
-# TODO: Check env.Wrapper subclassing to achieve: action space mapping, callbacks, last action memory, etc. This will
-#  keep the base env simpler
+
 class Agent:
     # Alphabet for agent identification
     alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
@@ -689,17 +688,17 @@ class MAEGG(ParallelEnv, gym.Env):
                         label = "_nolegend_"  # Don't add the same label twice
                     else:
                         seen_groups.add(label)
-                plt.plot(median[:, i], label=label, color=colors[i - 1])
+                plt.plot(median[:, i], label=label, color=colors[i - 1], linewidth=3)
                 plt.fill_between(range(self.max_steps), median[:, i] - iqr[:, i], median[:, i] + iqr[:, i],
                                  alpha=0.2, color=colors[i - 1])
-            plt.plot(median[:, 0], label="Donation Box", color='green')
+            plt.plot(median[:, 0], label="Donation Box", color='green', linewidth=3)
             plt.fill_between(range(self.max_steps), median[:, 0] - iqr[:, 0], median[:, 0] + iqr[:, 0],
-                             alpha=0.2, color='green')
+                             alpha=0.15, color='green')
             # Plot survival threshold and donation capacity
             plt.plot([0, self.max_steps], [self.survival_threshold, self.survival_threshold],
-                     label="Survival Threshold", linestyle='--', color='red')
+                     label="Survival Threshold", linestyle='-.', color='red', linewidth=3)
             plt.plot([0, self.max_steps], [self.donation_capacity, self.donation_capacity], label="Donation Box Capacity",
-                     linestyle='--', color='black')
+                     linestyle='--', color='black', linewidth=3)
 
             plt.title('Number of apples through time', fontsize=35)
             plt.xlabel('Timesteps', fontsize=35)
@@ -723,7 +722,7 @@ class MAEGG(ParallelEnv, gym.Env):
                              alpha=0.2, color='green')
             # Plot survival threshold and donation capacity
             plt.plot([0, self.max_steps], [self.survival_threshold, self.survival_threshold],
-                     label="Survival Threshold", linestyle='--', color='red')
+                     label="Survival Threshold", linestyle='.-', color='red')
             plt.plot([0, self.max_steps], [self.donation_capacity, self.donation_capacity], label="Donation Capacity",
                      linestyle='--', color='black')
             plt.legend()
