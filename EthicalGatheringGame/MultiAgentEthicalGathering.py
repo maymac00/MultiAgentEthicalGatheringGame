@@ -78,7 +78,7 @@ class MAEGG(ParallelEnv, gym.Env):
     MOVE_VECTORS = {MOVE_UP: (-1, 0), MOVE_DOWN: (1, 0), MOVE_LEFT: (0, -1), MOVE_RIGHT: (0, 1), STAY: (0, 0),
                     DONATE: (0, 0), TAKE_DONATION: (0, 0)}
 
-    log_level = logging.DEBUG
+    log_level = logging.INFO
     metadata = {
         "name": "MultiAgentEthicalGathering-v1",
         "render_modes": ["human", "partial_observability"],
