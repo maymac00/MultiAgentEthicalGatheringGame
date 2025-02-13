@@ -344,7 +344,7 @@ class MAEGG(ParallelEnv, gym.Env):
 
         reward = np.zeros((self.n_agents, 2))
 
-        if isinstance(action, int):
+        if not isinstance(action, list) or not isinstance(action, tuple) or not isinstance(action, np.ndarray):
             action = [action]
 
         untie_prio = np.random.permutation(self.n_agents)
