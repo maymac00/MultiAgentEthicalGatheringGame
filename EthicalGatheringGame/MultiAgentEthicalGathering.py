@@ -407,7 +407,7 @@ class MAEGG(ParallelEnv, gym.Env):
         if self.track:
             self.history.append(info)
         ret_r = np.array([ag.r for ag in self.agents.values()])
-        return nObservations, ret_r[0] if self.n_agents == 1 else ret_r, done, False, info
+        return nObservations[0] if self.n_agents == 1 else nObservations, ret_r[0] if self.n_agents == 1 else ret_r, done, False, info
 
     def reset(self, seed=None, options=None):
         """
