@@ -162,7 +162,10 @@ class MAEGG(ParallelEnv, gym.Env):
         if efficiency is None:
             self.efficiency = [i for i in range(1, self.n_agents + 1)]
         elif isinstance(efficiency, float):
-            self.efficiency = [eff_agents] * int(self.n_agents*efficiency) + [ineff_agents] * int(self.n_agents - self.n_agents*efficiency)
+            if self.n_agents == 1:
+                self.efficiency = [efficiency]
+            else:
+                self.efficiency = [eff_agents] * int(self.n_agents*efficiency) + [ineff_agents] * int(self.n_agents - self.n_agents*efficiency)
         else:
             assert len(efficiency) == self.n_agents, "Efficiency list must have the same length as the number of agents"
             self.efficiency = efficiency
@@ -186,23 +189,30 @@ class MAEGG(ParallelEnv, gym.Env):
         self.stash = []
 
         # Env Setup
-        self.action_space = gym.spaces.tuple.Tuple([gym.spaces.Discrete(7)] * self.n_agents)
+        if self.n_agents == 1:
+            self.action_space = gym.spaces.Discrete(7)
+            self.reward_space = gym.spaces.Box(low=-1, high=1, shape=(2,) if self.reward_mode == "vectorial" else (1,), dtype=np.float32)
+            if self.partial_observability:
+                self.observation_space = gym.spaces.Box(low=0, high=1,shape=((self.visual_radius * 2 + 1) ** 2 + 2,),dtype=np.float32)
+            else:
+                self.observation_space = gym.spaces.Box(low=0, high=1, shape=(np.prod(self.map.current_state.shape) + 2,),dtype=np.float32)
 
-        if self.reward_mode == "vectorial":
-            self.reward_space = gym.spaces.Box(low=-1, high=1, shape=(2,), dtype=np.float32)
-        elif self.reward_mode == "scalarised":
-            self.reward_space = gym.spaces.Box(low=-1, high=1, shape=(1,), dtype=np.float32)
 
-        if self.partial_observability:
-            self.observation_space = gym.spaces.tuple.Tuple([gym.spaces.Box(low=0, high=1,
-                                                                            shape=(
-                                                                            (self.visual_radius * 2 + 1) ** 2 + 2,),
-                                                                            dtype=np.float32)] * self.n_agents)
+        elif self.n_agents > 1:
+            self.action_space = gym.spaces.tuple.Tuple([gym.spaces.Discrete(7)] * self.n_agents)
+            self.reward_space = gym.spaces.Box(low=-1, high=1, shape=(2,) if self.reward_mode == "vectorial" else (1,), dtype=np.float32)
 
+            if self.partial_observability:
+                self.observation_space = gym.spaces.tuple.Tuple([gym.spaces.Box(low=0, high=1,
+                                                                                shape=(
+                                                                                (self.visual_radius * 2 + 1) ** 2 + 2,),
+                                                                                dtype=np.float32)] * self.n_agents)
+            else:
+                self.observation_space = gym.spaces.tuple.Tuple(
+                    [gym.spaces.Box(low=0, high=1, shape=(np.prod(self.map.current_state.shape) + 2,),
+                                    dtype=np.float32)] * self.n_agents)
         else:
-            self.observation_space = gym.spaces.tuple.Tuple(
-                [gym.spaces.Box(low=0, high=1, shape=(np.prod(self.map.current_state.shape) + 2,),
-                                dtype=np.float32)] * self.n_agents)
+            raise ValueError("Number of agents must be greater than 0")
 
         # Log relevant info
         self.logger.debug("Environment initialized with parameters:")
@@ -396,8 +406,8 @@ class MAEGG(ParallelEnv, gym.Env):
 
         if self.track:
             self.history.append(info)
-
-        return nObservations, np.array([ag.r for ag in self.agents.values()]), done, False, info
+        ret_r = np.array([ag.r for ag in self.agents.values()])
+        return nObservations, ret_r[0] if self.n_agents == 1 else ret_r, done, False, info
 
     def reset(self, seed=None, options=None):
         """
