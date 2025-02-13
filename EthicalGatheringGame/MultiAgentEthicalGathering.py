@@ -344,6 +344,9 @@ class MAEGG(ParallelEnv, gym.Env):
 
         reward = np.zeros((self.n_agents, 2))
 
+        if isinstance(action, int):
+            action = [action]
+
         untie_prio = np.random.permutation(self.n_agents)
         sorted_pairs = sorted(zip(self.agents.values(), action, untie_prio, list(range(self.n_agents))), reverse=True,
                               key=lambda x: (x[0].efficiency, x[2]))
