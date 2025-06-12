@@ -172,22 +172,35 @@ class MAEGG(ParallelEnv, gym.Env):
         if self.n_agents == 1:
             print("Running as single-agent")
             self.action_space = gym.spaces.Discrete(7)
+
+            if self.reward_mode == "vectorial":
+                self.reward_space = gym.spaces.Box(low=-1, high=1, shape=(2,), dtype=np.float32)
+            elif self.reward_mode == "scalarised":
+                self.reward_space = gym.spaces.Box(low=-1, high=1, shape=(1,), dtype=np.float32)
+
+            if self.partial_observability:
+                self.observation_space = gym.spaces.Box(low=0, high=1,shape=((self.visual_radius * 2 + 1) ** 2 + 2,),
+                                                                                dtype=np.float32)
+
+            else:
+                self.observation_space = gym.spaces.Box(low=0, high=1, shape=(np.prod(self.map.current_state.shape) + 2,),
+                                    dtype=np.float32)
         else:
             self.action_space = gym.spaces.tuple.Tuple([gym.spaces.Discrete(7)] * self.n_agents)
 
-        if self.reward_mode == "vectorial":
-            self.reward_space = gym.spaces.Box(low=-1, high=1, shape=(2,), dtype=np.float32)
-        elif self.reward_mode == "scalarised":
-            self.reward_space = gym.spaces.Box(low=-1, high=1, shape=(1,), dtype=np.float32)
+            if self.reward_mode == "vectorial":
+                self.reward_space = gym.spaces.Box(low=-1, high=1, shape=(2,), dtype=np.float32)
+            elif self.reward_mode == "scalarised":
+                self.reward_space = gym.spaces.Box(low=-1, high=1, shape=(1,), dtype=np.float32)
 
-        if self.partial_observability:
-            self.observation_space = gym.spaces.tuple.Tuple([gym.spaces.Box(low=0, high=1,
-                                                    shape=((self.visual_radius * 2 + 1) ** 2 + 2,),
-                                                    dtype=np.float32)] * self.n_agents)
+            if self.partial_observability:
+                self.observation_space = gym.spaces.tuple.Tuple([gym.spaces.Box(low=0, high=1,
+                                                        shape=((self.visual_radius * 2 + 1) ** 2 + 2,),
+                                                        dtype=np.float32)] * self.n_agents)
 
-        else:
-            self.observation_space = gym.spaces.tuple.Tuple([gym.spaces.Box(low=0, high=1, shape=(np.prod(self.map.current_state.shape) + 2,),
-                                                    dtype=np.float32)] * self.n_agents)
+            else:
+                self.observation_space = gym.spaces.tuple.Tuple([gym.spaces.Box(low=0, high=1, shape=(np.prod(self.map.current_state.shape) + 2,),
+                                                        dtype=np.float32)] * self.n_agents)
 
         # Log relevant info
         self.logger.debug("Environment initialized with parameters:")
