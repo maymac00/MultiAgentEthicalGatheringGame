@@ -325,7 +325,11 @@ class MAEGG(ParallelEnv, gym.Env):
             "R'_N": [0] * self.n_agents,
             "R'_E": [0] * self.n_agents,
         }
+        try:
+            len(action)
 
+        except TypeError:
+            action = [action]
         self.steps += 1
         done = self.steps >= self.max_steps
 
