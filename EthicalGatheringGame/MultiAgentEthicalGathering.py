@@ -371,6 +371,8 @@ class MAEGG(ParallelEnv, gym.Env):
 
         self.sim_data["generated_apples"] += self.map.regen_apples(self.agents.values())
         nObservations = self.getObservation()
+        if self.n_agents == 1:
+            nObservations = nObservations[0]
 
         if self.sim_data["donation_box_full"] == -1 and self.donation_box == self.donation_capacity:
             self.sim_data["donation_box_full"] = self.steps
