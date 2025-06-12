@@ -426,7 +426,10 @@ class MAEGG(ParallelEnv, gym.Env):
             self.stash.append(self.build_history_array())
         self.history = []
         self.gen_apples = 0
-        return self.getObservation(), {}
+        obs = self.getObservation()
+        if self.n_agents == 1:
+            obs = obs[0]
+        return obs, {}
 
     def render(self, mode="human", pause=0.03):
         frame = self.map.current_state.copy()
