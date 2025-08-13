@@ -13,12 +13,13 @@ from EthicalGatheringGame.wrappers import NormalizeReward, StatTracker
 
 preset = copy.copy(large)
 preset["we"] = [1, 10]
-preset["donation_capacity"] = 0
+preset["donation_capacity"] = 10
 preset["max_steps"] = 500
 # preset["efficiency"] = [0.1] * n # Equally low efficiency
 # preset["efficiency"] = [0.5] * n  # Equally medium efficiency
 preset["efficiency"] = 0.2  # 40% efficiency
 # preset["reward_mode"] = "vectorial"
+preset["n_agents"] = 1
 
 preset["color_by_efficiency"] = True
 
