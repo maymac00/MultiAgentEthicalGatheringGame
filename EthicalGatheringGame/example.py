@@ -8,8 +8,19 @@ import matplotlib
 matplotlib.use('TkAgg')
 from matplotlib import pyplot as plt
 from EthicalGatheringGame import MAEGG
-from EthicalGatheringGame.presets import tiny, small, medium, large
+from EthicalGatheringGame.presets import tiny, small, medium, large, very_large
 from EthicalGatheringGame.wrappers import NormalizeReward, StatTracker
+
+preset = copy.copy(large)
+preset["we"] = [1, 10]
+preset["donation_capacity"] = 0
+preset["max_steps"] = 500
+# preset["efficiency"] = [0.1] * n # Equally low efficiency
+# preset["efficiency"] = [0.5] * n  # Equally medium efficiency
+preset["efficiency"] = 0.2  # 40% efficiency
+# preset["reward_mode"] = "vectorial"
+
+preset["color_by_efficiency"] = True
 
 
 def greedy_agent(grid, agent, env):
@@ -45,7 +56,7 @@ def greedy_agent(grid, agent, env):
 
     if agent.apples > env.survival_threshold and env.donation_box < env.donation_capacity:
         return 5
-    if agent.apples < env.survival_threshold and env.donation_box > 0:
+    if agent.apples < env.survival_threshold and env.donation_box > preset["n_agents"]:
         return 6
 
     target_positions = find_agent_and_targets(grid)
@@ -53,21 +64,15 @@ def greedy_agent(grid, agent, env):
     if target_pos is None:
         return 4
     move = greedy_move(agent.position, target_pos)
+    # account for stochasticity
+    if random.random() > 0.1:
+        return move
+    else:
+        return random.choice([0, 1, 2, 3])
     return move
 
 
-n = 5
-preset = copy.copy(large)
-preset["we"] = [1, 10]
-preset["donation_capacity"] = 100
-preset["max_steps"] = 500
-preset["n_agents"] = n
-# preset["efficiency"] = [0.1] * n # Equally low efficiency
-# preset["efficiency"] = [0.5] * n  # Equally medium efficiency
-preset["efficiency"] = [0.85, 0.85, 0.2, 0.2, 0.2]  # 40% efficiency
-# preset["reward_mode"] = "vectorial"
 
-preset["color_by_efficiency"] = True
 env = MAEGG(**preset)
 env = StatTracker(env)
 
@@ -91,11 +96,12 @@ for r in range(5):
         obs, reward, terminated, truncated, info = env.step(actions)
         acc_reward += reward
         # print(reward)
-        # env.render()
+        #env.render()
 
 h = copy.deepcopy(env.history)
-env.setHistory(h)
-# env.plot_results("median")
-#env.get_results()
+env.unwrapped.setHistory(h)
 env.print_results()
+env.unwrapped.plot_results("median", save_path="results.png")
+#env.get_results()
+
 pass

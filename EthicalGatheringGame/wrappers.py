@@ -26,9 +26,9 @@ class DummyPeers(gym.Wrapper):
         self.env = env
         self.dummy_mask = dummy_mask
 
-        env.logger.info("Dummy peers wrapper initialized")
-        env.logger.info(f"Dummy mask: {dummy_mask}")
-        if len(dummy_mask) != self.env.n_agents:
+        env.unwrapped.logger.info("Dummy peers wrapper initialized")
+        env.unwrapped.logger.info(f"Dummy mask: {dummy_mask}")
+        if len(dummy_mask) != self.env.unwrapped.n_agents:
             raise ValueError("Dummy mask must be of length n_agents")
 
     def step(self, action):
@@ -51,21 +51,22 @@ class NormalizeReward(gym.core.Wrapper):
         self.active = True
 
         self.return_rms = RunningMeanStd(shape=())
-        self.returns = np.zeros(env.n_agents)
+        self.returns = np.zeros(env.unwrapped.n_agents)
 
-        env.logger.info("Normalize reward wrapper initialized")
-        env.logger.info(f"Gamma: {gamma}")
+        env.unwrapped.logger.info("Normalize reward wrapper initialized")
+        env.unwrapped.logger.info(f"Gamma: {gamma}")
 
-        if env.reward_mode == "vectorial":
+        if env.unwrapped.reward_mode == "vectorial":
             raise ValueError("Vectorial rewards are not supported.")
 
     def step(self, action):
-        obs, rews, dones, infos = self.env.step(action)
+        obs, rews, terminated, truncated, infos = self.env.step(action)
+        terminated = [terminated] * self.env.unwrapped.n_agents
         if self.active:
             self.returns = self.returns * self.gamma + rews
             rews = self.normalize(rews)
-            self.returns[dones] = 0.0
-        return obs, rews, dones, infos
+            self.returns[terminated] = 0.0
+        return obs, rews, terminated, truncated, infos
 
     def normalize(self, rews):
         self.return_rms.update(self.returns)
@@ -114,7 +115,7 @@ class StatTracker(gym.core.Wrapper):
         return obs, rews, terminated, truncated, info
 
     def print_results(self):
-        results = self.env.unwrapped.print_results()
+        results = self.env.print_results()
         # Plot as fancy table with
         table = PrettyTable()
 
@@ -166,7 +167,7 @@ if __name__ == "__main__":
     # env = DummyPeers(env)
     env = NormalizeReward(env)
     env.unwrapped.we = [1, 999]
-    env.reset()
+    env.unwrapped.reset()
     for i in range(100):
         obs, rews, _, _ = env.step([np.random.randint(0, 5) for _ in range(env.unwrapped.n_agents)])
         print(rews)
