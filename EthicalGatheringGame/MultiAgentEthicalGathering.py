@@ -160,12 +160,14 @@ class MAEGG(ParallelEnv, gym.Env):
         self.dims = self.map.current_state.shape
         # if efficency is a collection, it will be used as the efficiency of each agent. If it is a single value, it will be the percentage of agents as efficient agents
         if efficiency is None:
-            self.efficiency = [i for i in range(1, self.n_agents + 1)]
+            self.efficiency = [i/10 for i in range(1, self.n_agents + 1)]
         elif isinstance(efficiency, float):
             if self.n_agents == 1:
                 self.efficiency = [efficiency]
             else:
-                self.efficiency = [eff_agents] * int(self.n_agents*efficiency) + [ineff_agents] * int(self.n_agents - self.n_agents*efficiency)
+                n_eff_agents = np.ceil(self.n_agents*efficiency).astype('int')  # If provided % is not an integer, it will be rounded up
+                n_ineff_agents = self.n_agents - n_eff_agents
+                self.efficiency = [eff_agents] * n_eff_agents + [ineff_agents] * n_ineff_agents
         else:
             assert len(efficiency) == self.n_agents, "Efficiency list must have the same length as the number of agents"
             self.efficiency = efficiency
@@ -338,17 +340,15 @@ class MAEGG(ParallelEnv, gym.Env):
             "R'_N": [0] * self.n_agents,
             "R'_E": [0] * self.n_agents,
         }
-        try:
-            len(action)
 
-        except TypeError:
-            action = [action]
         self.steps += 1
         done = self.steps >= self.max_steps
 
         reward = np.zeros((self.n_agents, 2))
 
-        if not isinstance(action, list) or not isinstance(action, tuple) or not isinstance(action, np.ndarray):
+        try:
+            len(action)
+        except TypeError:
             action = [action]
 
         untie_prio = np.random.permutation(self.n_agents)

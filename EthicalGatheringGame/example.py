@@ -17,9 +17,10 @@ preset["donation_capacity"] = 10
 preset["max_steps"] = 500
 # preset["efficiency"] = [0.1] * n # Equally low efficiency
 # preset["efficiency"] = [0.5] * n  # Equally medium efficiency
-preset["efficiency"] = 0.2  # 40% efficiency
+preset["efficiency"] = 0.4  # % of efficient agents
 # preset["reward_mode"] = "vectorial"
-preset["n_agents"] = 1
+preset["n_agents"] = 5
+preset["init_state"] = "empty"
 
 preset["color_by_efficiency"] = True
 
@@ -83,7 +84,7 @@ env.toggleStash(True)
 acc_reward = [0] * env.n_agents
 
 env.reset()
-for r in range(5):
+for r in range(50):
     obs, _ = env.reset()
     acc_reward = [0] * env.n_agents
     for i in range(env.max_steps):
